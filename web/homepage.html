@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>Vnollx网盘</title>
+    <style>
+        :root {
+            --primary-color: #6C5CE7;
+            --secondary-color: #A8A4FF;
+            --accent-color: #FF7675;
+            --background: #F8F9FF;
+            --text-dark: #2D3436;
+            --text-light: #636E72;
+        }
+
+        * {
+            margin: 0;
+            overflow: hidden;      /* 隐藏内部滚动条 */
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'PingFang SC', system-ui, -apple-system, sans-serif;
+        }
+        body {
+            background: var(--background);
+            color: var(--text-dark);
+            overflow: hidden;      /* 隐藏内部滚动条 */
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 侧边栏优化 */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+            padding: 30px 20px;
+            box-shadow: 4px 0 15px rgba(108, 92, 231, 0.08);
+            position: relative;
+            z-index: 2;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 15px;
+            background: rgba(108, 92, 231, 0.05);
+            border-radius: 12px;
+        }
+
+        .user-info img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            margin-right: 15px;
+            border: 2px solid var(--primary-color);
+        }
+
+        .user-info p {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        nav ul li {
+            margin: 8px 0;
+            transition: all 0.2s;
+        }
+
+        nav ul li a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 8px;
+            color: var(--text-light);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        nav ul li a span {
+            margin-right: 15px;
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        nav ul li a:hover {
+            background: rgba(108, 92, 231, 0.08);
+            transform: translateX(4px);
+        }
+
+        .exit-btn {
+            position: absolute;
+            bottom: 30px;
+            width: calc(100% - 40px);
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-color) 0%, #FF6384 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 12px rgba(255, 118, 117, 0.25);
+        }
+
+        .exit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 118, 117, 0.35);
+        }
+
+        .main-content {
+            flex: 1;
+            margin: 15px;
+            margin-left: -7px;
+            margin-right: -7px;
+            background: var(--background);
+            display: flex;
+            position: relative;
+            top: -10px;
+            height: calc(100vh - 30px); /* 防止内容溢出 */
+            overflow: hidden; /* 新增：确保内容不会超出容器 */
+        }
+
+        /* 确保 iframe 会按比例填充并且没有滚动条 */
+        iframe {
+            position: absolute; /* 绝对定位使其铺满容器 */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .stat-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .chart-container {
+                height: auto;
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 20px;
+            }
+
+            .main-content {
+                padding: 20px;     /* 调整移动端内边距 */
+                min-height: 60vh; /* 保证最小高度 */
+            }
+            .stat-container {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-item {
+                height: auto;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .exit-btn {
+                position: static;
+                margin-top: 30px;
+                width: 100%;
+            }
+
+            .chart-item {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="sidebar">
+        <div class="user-info">
+            <img id="avatarimg" alt="头像">
+            <p>普通用户</p>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#" id="infolink"><span></span>使用情况</a></li>
+                <li><a href="#" id="allfilelink"><span></span>全部文件</a></li>
+                <li><a href="#"><span></span>分类文件</a></li>
+                <li><a href="#" id="helplink"><span></span>帮助中心</a></li>
+            </ul>
+        </nav>
+        <button id="exit" class="exit-btn">退出登录</button>
+    </div>
+
+    <div id="main-content" class="main-content">
+        <!-- 这里会显示动态加载的内容 -->
+    </div>
+</div>
+
+<script>
+    window.onload = function () {
+        var token=localStorage.getItem('token')
+        if (!token){
+            Swal.fire({
+                icon: 'error',
+                title: '请先登录',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "login";
+                }
+            });
+        }
+        fetchUserInfo();
+        const container = document.getElementById("main-content");
+        container.innerHTML = `<iframe src="info"></iframe>`; // 简化 iframe 创建
+    };
+
+    async function fetchUserInfo() {
+        var token = localStorage.getItem('token');
+        if (!token) {
+            console.error('未找到token');
+            return;
+        }
+        try {
+            const formData = new FormData();
+            formData.append('token', token);
+
+            const response = await fetch('/user/userinfo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token })
+            });
+
+            if (!response.ok) {
+                throw new Error(`请求失败，状态码: ${response.status}`);
+            }
+
+            const resp = await response.json();
+            const userInfo = resp.userinfo;
+            localStorage.setItem("name", userInfo.name);
+            localStorage.setItem("id",userInfo.id);
+            localStorage.setItem("space",parseInt(userInfo.space))
+            if (userInfo) {
+                document.getElementById("avatarimg").src = userInfo.avatar;
+            }
+        } catch (error) {
+            console.error('获取用户信息时出错:', error);
+        }
+    }
+
+    document.getElementById("infolink").addEventListener('click', function (e) {
+        e.preventDefault();
+        fetchUserInfo();
+        const container = document.getElementById("main-content");
+        container.innerHTML = `<iframe src="info"></iframe>`; // 简化 iframe 创建
+    } );
+    document.getElementById("allfilelink").addEventListener('click', function (e) {
+        e.preventDefault();
+        const container = document.getElementById("main-content");
+        container.innerHTML = `<iframe src="allfile"></iframe>`; // 简化 iframe 创建
+    } );
+    document.getElementById("helplink").addEventListener('click', function (e) {
+        e.preventDefault();
+        const container = document.getElementById("main-content");
+        container.innerHTML = `<iframe src="help"></iframe>`; // 简化 iframe 创建
+    } );
+    document.getElementById("exit").addEventListener('click', function () {
+        Swal.fire({
+            title: '确认退出？',
+            text: "您确定要退出当前账户吗？",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#667eea',
+            cancelButtonColor: '#718096',
+            confirmButtonText: '退出',
+            cancelButtonText: '取消',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                localStorage.removeItem('token')
+                window.location.href = "login";
+            }
+        });
+    });
+</script>
+
+</body>
+
+</html>

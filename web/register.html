@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vnollx 网盘注册</title>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1021.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        /* 欢迎信息区域 */
+        .welcome-section {
+            background: linear-gradient(150deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.05) 100%);
+            padding: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100vh;
+            border-right: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .welcome-content {
+            max-width: 500px;
+        }
+
+        .logo {
+            font-size: 2.5em;
+            color: #667eea;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo::before {
+            content: "📦";
+            font-size: 1.2em;
+        }
+
+        h2 {
+            color: #2d3748;
+            font-size: 2.2em;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .features {
+            list-style: none;
+            margin: 30px 0;
+        }
+
+        .features li {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            color: #4a5568;
+            font-size: 1.05em;
+        }
+
+        .features li::before {
+            content: "✓";
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        /* 注册区域 */
+        #registerdiv {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            height: 100vh;
+        }
+
+        #form {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 500px;
+            transition: transform 0.3s ease;
+        }
+
+        #title {
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+
+        /* 头像上传样式 */
+        #avatarContainer {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        #avatarPreview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #avatarPreview:hover {
+            transform: scale(1.05);
+            border-color: #667eea;
+        }
+
+        #avatarLabel {
+            display: inline-block;
+            margin-top: 10px;
+            color: #667eea;
+            cursor: pointer;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        #avatarLabel:hover {
+            color: #5666b3;
+        }
+
+        #avatarInput {
+            display: none;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 20px;
+            border: 2px solid #edf2f7;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        input:focus {
+            background: white;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        #subdiv {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .button {
+            background: #667eea;
+            color: white;
+            padding: 14px 30px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .button:hover {
+            background: #5666b3;
+            transform: translateY(-1px);
+        }
+
+        .reset-btn {
+            background: #718096;
+        }
+
+        .reset-btn:hover {
+            background: #4a5568;
+        }
+
+        p {
+            color: #718096;
+            margin-top: 15px;
+        }
+
+        a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 1fr;
+            }
+
+            .welcome-section {
+                display: none;
+            }
+
+            #registerdiv {
+                padding: 20px;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .button-row {
+                flex-direction: column;
+            }
+
+            .button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- 欢迎信息区域 -->
+<section class="welcome-section">
+    <div class="welcome-content">
+        <div class="logo">Vnollx Drive</div>
+        <h2>开启您的智能存储之旅</h2>
+        <ul class="features">
+            <li>免费获得15GB初始存储空间</li>
+            <li>支持多端同步和文件分享</li>
+            <li>智能分类和快速搜索功能</li>
+            <li>银行级数据加密保护</li>
+        </ul>
+        <p style="color: #718096;">真诚的邀请您体验我们的服务</p>
+    </div>
+</section>
+
+<!-- 注册区域 -->
+<div id="registerdiv">
+    <form action="/user/register" method="post" id="form">
+        <h1 id="title">创建新账户</h1>
+
+        <!-- 头像上传 -->
+        <div id="avatarContainer">
+            <img id="avatarPreview" src="http://127.0.0.1:9000/user/init.jpg" alt="头像预览">
+            <label id="avatarLabel" for="avatarInput">点击上传头像</label>
+            <input type="file" id="avatarInput" accept="image/*" onchange="previewAvatar(event)">
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="username" placeholder="请输入用户名" required>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="phone" placeholder="请输入手机号码" required>
+        </div>
+
+        <div class="input-group">
+            <input type="password" id="password" placeholder="设置登录密码" required>
+        </div>
+
+        <div class="input-group">
+            <input type="password" id="repassword" placeholder="确认登录密码" required>
+        </div>
+
+        <div id="subdiv">
+            <div class="button-row">
+                <button type="submit" class="button">立即注册</button>
+                <button type="reset" class="button reset-btn">重置</button>
+            </div>
+            <p>已有账号? <a href="login">立即登录</a></p>
+        </div>
+    </form>
+</div>
+
+<script>
+    // 使用 SweetAlert2 替代原生alert
+    function check(){
+        const username = document.getElementById("username").value;
+        const phone = document.getElementById("phone").value;
+        const password = document.getElementById("password").value;
+        const repassword = document.getElementById("repassword").value;
+
+        if(!username) {
+            Swal.fire('提示', '用户名不能为空!', 'warning');
+            return false;
+        }
+        if(!phone) {
+            Swal.fire('提示', '电话号码不能为空!', 'warning');
+            return false;
+        }
+        if(!password) {
+            Swal.fire('提示', '密码不能为空!', 'warning');
+            return false;
+        }
+        if(password !== repassword) {
+            Swal.fire('错误', '两次输入的密码不一致!', 'error');
+            return false;
+        }
+        // 定义正则表达式，验证电话号码（这里以中国手机号为例）
+        const phoneRegex = /^1[3-9]\d{9}$/;
+        if (phoneRegex.test(phone)) {
+            return true
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: '格式错误',
+                html: '请输入有效的手机号码',
+                confirmButtonColor: '#667eea'
+            });
+            return false;
+        }
+    }
+
+    // 头像预览功能
+    function previewAvatar(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById("avatarPreview");
+            preview.src = e.target.result;
+            preview.style.borderColor = '#667eea';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // 表单提交处理
+    document.getElementById("form").addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (!check()) return;
+
+        const name = document.getElementById("username").value;
+        const phone = document.getElementById("phone").value;
+        const password = document.getElementById("password").value;
+        const avatarFile = document.getElementById('avatarInput').files[0];
+
+        try {
+            let avatarUrl = 'http://127.0.0.1:9000/user/init.jpg'; // 默认头像
+
+            // 如果有上传头像
+            if (avatarFile) {
+                // 配置 AWS SDK（使用浏览器全局变量）
+                AWS.config.update({
+                    accessKeyId: 'vnollxvnollx',
+                    secretAccessKey: 'vnollxvnollxvnollx',
+                    region: 'us-east-1',
+                    endpoint: 'http://localhost:9000',
+                    s3ForcePathStyle: true,
+                    signatureVersion: 'v4'
+                });
+
+                const s3 = new AWS.S3();
+
+                // 生成唯一文件名
+                const fileName = phone+".jpg";
+
+                // 使用 Promise 方式上传
+                const uploadResult = await new Promise((resolve, reject) => {
+                    s3.upload({
+                        Bucket: 'phone',
+                        Key: fileName,
+                        Body: avatarFile,
+                        ContentType: avatarFile.type
+                    }, (err, data) => {
+                        if (err) reject(err);
+                        else resolve(data);
+                    });
+                });
+
+                var avatar = uploadResult.Location;
+            }
+
+            // 提交注册信息
+            const response = await fetch("/user/register", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name,
+                    phone,
+                    password,
+                    avatar  // 添加头像地址
+                })
+            });
+
+            const data = await response.json();
+            if (data.base.code === 200) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: '注册成功!',
+                    text: '正在跳转到登录页面...',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                window.location.href = "login";
+            } else {
+                Swal.fire('注册失败', data.base.msg || '未知错误', 'error');
+            }
+        } catch (error) {
+            console.error("发生错误:", error);
+            Swal.fire({
+                icon: 'error',
+                title: '操作失败',
+                text: error.message || '请检查控制台获取详细信息'
+            });
+        }
+    });
+</script>
+</body>
+</html>

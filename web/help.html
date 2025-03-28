@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>使用帮助 - Vnollx网盘</title>
+    <style>
+        :root {
+            --primary-color: #6C5CE7;
+            --secondary-color: #A8A4FF;
+            --accent-color: #FF7675;
+            --background: #F8F9FF;
+            --text-dark: #2D3436;
+            --text-light: #636E72;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'PingFang SC', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text-dark);
+        }
+
+        .header {
+            background: var(--primary-color);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 20px 0;
+        }
+
+        .menu-icon {
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+            margin-right: 1.5rem;
+        }
+
+        .help-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .help-title svg {
+            width: 24px;
+            height: 24px;
+            margin-right: 0.8rem;
+            color: var(--secondary-color);
+        }
+
+        .main-container {
+            display: flex;
+            padding: 1rem 2rem;
+            gap: 2rem;
+            height: calc(100vh - 100px);
+        }
+
+        .left-section {
+            flex: 1;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(108, 92, 231, 0.1);
+        }
+
+        .menu-list {
+            list-style: none;
+        }
+
+        .menu-item {
+            padding: 1rem 1.2rem;
+            margin: 0.8rem 0;
+            background: rgba(108, 92, 231, 0.08);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .menu-item:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateX(8px);
+        }
+
+        .menu-item svg {
+            width: 24px;
+            height: 24px;
+            color: var(--secondary-color);
+        }
+
+        .right-section {
+            flex: 2;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(108, 92, 231, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .right-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .image-slider {
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .image-list {
+            display: flex;
+            animation: scroll 20s linear infinite;
+        }
+
+        .image-item {
+            flex-shrink: 0;
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            object-position: bottom;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(-100% * 3)); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(108, 92, 231, 0.2);
+            width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: var(--primary-color);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal h2 {
+            color: var(--text-dark);
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .modal p {
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-container {
+                flex-direction: column;
+                height: auto;
+                padding: 1rem;
+            }
+
+            .left-section {
+                margin-bottom: 2rem;
+            }
+
+            .image-item {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+<header class="header">
+    <span class="menu-icon">☰</span>
+    <h2>使用帮助</h2>
+</header>
+<div class="main-container">
+    <div class="left-section">
+        <div class="help-title">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 15h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+            </svg>
+            <h2>使用帮助</h2>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item" data-modal="user-agreement">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 15h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+                </svg>
+                用户协议
+            </li>
+            <li class="menu-item" data-modal="about-cloud">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 15h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+                </svg>
+                关于网盘
+            </li>
+            <li class="menu-item" data-modal="user-rights">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 15h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+                </svg>
+                用户的权益
+            </li>
+            <li class="menu-item" data-modal="login-register">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 15h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+                </svg>
+                登录与注册
+            </li>
+            <li class="menu-item" data-modal="upload-download">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 15h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+                </svg>
+                上传与下载
+            </li>
+            <li class="menu-item" data-modal="others">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 15h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+                </svg>
+                其他
+            </li>
+            <li class="menu-item" data-modal="about-author">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 15h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+                </svg>
+                关于作者
+            </li>
+        </ul>
+    </div>
+    <div class="right-section">
+        <div class="right-content">
+            <p style="font-size: 1.1rem; color: var(--text-light);">Vnollx网盘，只为给你带来最纯粹的体验！</p>
+            <div class="image-slider">
+                <div class="image-list">
+                    <img src="https://picsum.photos/600/400?random=1" class="image-item" alt="网盘场景">
+                    <img src="https://picsum.photos/600/400?random=2" class="image-item" alt="网盘场景">
+                    <img src="https://picsum.photos/600/400?random=3" class="image-item" alt="网盘场景">
+                </div>
+            </div>
+            <p style="font-size: 1.1rem; color: var(--text-light);">提供多元化数据存储服务。用户可自由管理网盘存储文件。</p>
+        </div>
+    </div>
+</div>
+
+<!-- 用户协议模态框 -->
+<div id="user-agreement" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>用户协议</h2>
+        <p>1. 本用户协议（以下简称“协议”）是您与Vnollx网盘之间就使用风间网盘服务所达成的协议。您在使用Vnollx网盘服务之前，请仔细阅读本协议的所有条款。如果您不同意本协议的任何条款，您将不能使用Vnollx网盘服务。</p>
+        <p>2. Vnollx网盘仅提供数据存储和传输服务，您应保证上传到Vnollx网盘的所有数据均符合国家法律法规的要求，不得上传任何违法、违规、侵犯他人权益的内容。</p>
+        <p>3. Vnollx网盘有权根据业务发展和法律法规的要求对本协议进行修改。如果您在协议修改后继续使用Vnollx网盘服务，即视为您同意接受修改后的协议。</p>
+    </div>
+</div>
+
+<!-- 关于网盘模态框 -->
+<div id="about-cloud" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>关于网盘</h2>
+        <p>Vnollx网盘是一款提供多元化数据存储服务的平台。它具有以下特点：</p>
+        <p>1. 大容量存储：为用户提供充足的存储空间，满足不同用户的存储需求。</p>
+        <p>2. 安全可靠：采用先进的加密技术，保障用户数据的安全和隐私。</p>
+        <p>3. 便捷操作：用户可以通过简单的操作上传、下载和管理自己的文件。</p>
+    </div>
+</div>
+
+<!-- 用户的权益模态框 -->
+<div id="user-rights" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>用户的权益</h2>
+        <p>1. 用户有权在Vnollx网盘规定的存储空间内自由上传、下载和管理自己的文件。</p>
+        <p>2. 用户有权对自己的账户进行管理，包括修改密码、绑定和解绑第三方账号等。</p>
+        <p>3. 用户有权对Vnollx网盘的服务质量进行监督和反馈，Vnollx网盘将及时处理用户的反馈并不断改进服务。</p>
+    </div>
+</div>
+
+<!-- 登录与注册模态框 -->
+<div id="login-register" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>登录与注册</h2>
+        <p>1. 您可以通过手机号码、电子邮箱等方式注册风间网盘账号。在注册过程中，请提供真实、准确、有效的信息。</p>
+        <p>2. 注册成功后，您可以使用注册时的账号和密码登录风间网盘。</p>
+        <p>3. 如果您忘记了密码，可以通过注册时预留的手机号码或电子邮箱进行密码重置。</p>
+    </div>
+</div>
+
+<!-- 上传与下载模态框 -->
+<div id="upload-download" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>上传与下载</h2>
+        <p>1. 您可以通过Vnollx网盘的网页端、客户端等方式上传文件。上传的文件大小和类型可能会受到一定的限制，请以Vnollx网盘的实际规定为准。</p>
+        <p>2. 下载文件时，您可以选择直接下载或使用下载工具进行下载。下载速度可能会受到网络环境等因素的影响。</p>
+        <p>3. 为了保证上传和下载的效率，请在网络环境良好的情况下进行操作。</p>
+    </div>
+</div>
+
+<!-- 其他模态框 -->
+<div id="others" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>其他</h2>
+        <p>1. Vnollx网盘可能会不定期推出一些优惠活动和新功能，您可以关注Vnollx网盘的官方网站或社交媒体账号获取最新信息。</p>
+        <p>2. 如果您在使用Vnollx网盘的过程中遇到任何问题，可以通过Vnollx网盘的在线客服、邮箱等方式联系我们，我们将竭诚为您服务。</p>
+    </div>
+</div>
+
+<!-- 关于作者模态框 -->
+<div id="about-author" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>关于作者</h2>
+        <p>Vnollx网盘由一个热爱技术和创新的独立开发者团队开发。致力于为用户提供优质、便捷、安全的数据存储服务。如果您对我们的团队或项目感兴趣，可以通过以下方式联系我们：</p>
+        <p>邮箱：2720741614@qq.com</p>
+    </div>
+</div>
+<!-- 模态框部分保持原结构不变 -->
+<script>
+    const menuItems = document.querySelectorAll('.menu-item');
+    const modals = document.querySelectorAll('.modal');
+    const closeButtons = document.querySelectorAll('.close');
+
+    menuItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const modalId = item.dataset.modal;
+            const modal = document.getElementById(modalId);
+            modal.style.display = 'block';
+        });
+    });
+
+    closeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const modal = button.closest('.modal');
+            modal.style.display = 'none';
+        });
+    });
+
+    window.addEventListener('click', (event) => {
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+</script>
+</body>
+</html>

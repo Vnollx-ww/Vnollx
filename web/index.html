@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>风间网盘</title>
+    <style>
+        :root {
+            --primary-color: #6C5CE7;
+            --secondary-color: #A8A4FF;
+            --accent-color: #FF7675;
+            --background: #F8F9FF;
+            --text-dark: #2D3436;
+            --text-light: #636E72;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'PingFang SC', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text-dark);
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 侧边栏优化 */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+            padding: 30px 20px;
+            box-shadow: 4px 0 15px rgba(108, 92, 231, 0.08);
+            position: relative;
+            z-index: 2;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 15px;
+            background: rgba(108, 92, 231, 0.05);
+            border-radius: 12px;
+        }
+
+        .user-info img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            margin-right: 15px;
+            border: 2px solid var(--primary-color);
+        }
+
+        .user-info p {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        nav ul li {
+            margin: 8px 0;
+            transition: all 0.2s;
+        }
+
+        nav ul li a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 8px;
+            color: var(--text-light);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        nav ul li a span {
+            margin-right: 15px;
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        nav ul li a:hover {
+            background: rgba(108, 92, 231, 0.08);
+            transform: translateX(4px);
+        }
+
+        .exit-btn {
+            position: absolute;
+            bottom: 30px;
+            width: calc(100% - 40px);
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-color) 0%, #FF6384 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 12px rgba(255, 118, 117, 0.25);
+        }
+
+        .exit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 118, 117, 0.35);
+        }
+
+        /* 主内容区优化 */
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            padding: 0 30px;
+        }
+
+        .header {
+            background: var(--primary-color);
+            padding: 18px 30px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.2);
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .menu-icon {
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-right: 20px;
+            cursor: pointer;
+        }
+
+        .header h2 {
+            flex-grow: 1;
+            font-weight: 600;
+            color: white;
+            letter-spacing: 0.5px;
+        }
+
+        .user-greeting {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* 仪表盘优化 */
+        .dashboard {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(108, 92, 231, 0.08);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        /* 统计卡片 */
+        .stat-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(108, 92, 231, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            height: 120px;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.1);
+        }
+
+        .stat-item .icon {
+            font-size: 32px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            flex-shrink: 0;
+        }
+
+        .stat-item p:first-of-type {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .stat-item p:last-of-type {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        /* 图表区域 */
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            height: 400px;
+        }
+
+        .chart-item {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid rgba(108, 92, 231, 0.1);
+            padding: 24px;
+            height: 100%;
+        }
+
+        .chart-item h4 {
+            font-size: 16px;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(108, 92, 231, 0.1);
+        }
+
+        .chart-placeholder {
+            height: calc(100% - 40px);
+            background: radial-gradient(circle at center,
+            rgba(108, 92, 231, 0.05) 0%,
+            rgba(108, 92, 231, 0) 70%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .stat-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .chart-container {
+                height: auto;
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 20px;
+            }
+
+            .main-content {
+                padding: 0 20px;
+            }
+
+            .stat-container {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-item {
+                height: auto;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .exit-btn {
+                position: static;
+                margin-top: 30px;
+                width: 100%;
+            }
+
+            .chart-item {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="sidebar">
+        <div class="user-info">
+            <img id="avatarimg"  alt="头像">
+            <p>普通用户</p>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#"><span></span>使用情况</a></li>
+                <li><a href="#"><span></span>全部文件</a></li>
+                <li><a href="#"><span></span>上传文件</a></li>
+                <li><a href="#"><span></span>分类文件</a></li>
+                <li><a href="#"><span></span>帮助中心</a></li>
+            </ul>
+        </nav>
+        <button id="exit" class="exit-btn">退出登录</button>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <span class="menu-icon">≡</span>
+            <h2>使用情况</h2>
+            <div class="user-greeting">你好，用户</div>
+        </div>
+
+        <div class="dashboard">
+            <div class="stat-container">
+                <div class="stat-item">
+                    <span class="icon">📁</span>
+                    <div>
+                        <p>文件夹数量</p>
+                        <p>2</p>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span class="icon">📄</span>
+                    <div>
+                        <p>文件数量</p>
+                        <p>1</p>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span class="icon">💾</span>
+                    <div>
+                        <p>已用容量</p>
+                        <p>15.2GB</p>
+                        <p style="font-size: 14px; color: var(--text-light);">剩余容量: 84.8GB</p>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span class="icon">⏱️</span>
+                    <div>
+                        <p>最近活动</p>
+                        <p>2小时前</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-item">
+                    <h4>来自系统通知</h4>
+                    <p style="font-size: 14px; color: var(--text-light);">Vnollx网盘是由个人开发者推出的在线存储服务。用户可以轻松将自己的文件上传到网盘上，并可跨终端随时随地查看和分享。注重用户的隐私，具有安全、简约、高效、不限速的特点。</p>
+                    <div class="chart-placeholder">这里显示系统通知内容</div>
+                </div>
+                <div class="chart-item">
+                    <h4>文件类型统计</h4>
+                    <div class="chart-placeholder">类型分布图表</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById("exit").addEventListener('click', function() {
+        Swal.fire({
+            title: '确认退出？',
+            text: "您确定要退出当前账户吗？",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#667eea',
+            cancelButtonColor: '#718096',
+            confirmButtonText: '退出',
+            cancelButtonText: '取消',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "login";
+            }
+        });
+    });
+    async function fetchUserInfo() {
+        var token = localStorage.getItem('token');
+        if (!token) {
+            console.error('未找到token');
+            return;
+        }
+        try {
+            const formData = new FormData();
+            formData.append('token', token);
+
+            const response = await fetch('/user/userinfo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({token})
+            });
+
+            if (!response.ok) {
+                throw new Error(`请求失败，状态码: ${response.status}`);
+            }
+
+            const resp = await response.json();
+            const userInfo = resp.userinfo;
+            if (userInfo && userInfo.name) {
+                const greetingElement = document.querySelector('.user-greeting');
+                greetingElement.textContent = `你好，${userInfo.name}`;
+                document.getElementById("avatarimg").src=userInfo.avatar;
+            }
+        } catch (error) {
+            console.error('获取用户信息时出错:', error);
+        }
+    }
+
+    window.addEventListener('load', fetchUserInfo);
+</script>
+</body>
+
+</html>

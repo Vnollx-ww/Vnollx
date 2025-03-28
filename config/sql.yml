@@ -1,0 +1,16 @@
+mysql:
+  source: # 主数据库
+    driverName: mysql
+    #host: my-mysql
+    host: 127.0.0.1
+    port: 3306
+    database: vnollx
+    username: root
+    password: ab147890
+    charset: utf8mb4
+redis:
+  #addr: my-redis
+  host: 127.0.0.1
+  port: 6379
+  password:
+  db: 0 # 数据库编号

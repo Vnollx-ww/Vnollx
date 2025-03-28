@@ -1,0 +1,9 @@
+server:
+  name: "APIServer"
+  host: 127.0.0.1
+  #host: 0.0.0.0
+  port: 8880
+  limit:
+    capacity: 200
+    rate: 20
+    tokenInit: 128

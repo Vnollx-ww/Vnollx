@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.28/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.28/dist/sweetalert2.min.js"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1192.0.min.js"></script>
+
+    <title>云文件管理 | SkyDrive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            margin: 14px 16px 16px;
+        }
+
+        .menu-icon {
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .menu-icon:hover {
+            opacity: 0.8;
+        }
+
+        .welcome-text {
+            font-weight: 500;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .file-container {
+            margin: 1rem;
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .path-nav {
+            margin: 1.5rem 0;
+            display: flex;
+            align-items: center;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .path-nav a {
+            color: #6366f1;
+            text-decoration: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .path-nav a:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+
+        .path-nav span {
+            margin: 0 0.4rem;
+        }
+
+        .file-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 1rem 0;
+            table-layout: fixed;
+        }
+
+        .file-table th {
+            background-color: #f9fafb;
+            color: #6b7280;
+            font-weight: 500;
+            padding: 1rem;
+            border-bottom: 2px solid #e5e7eb;
+            text-align: left;
+        }
+
+        .file-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            transition: background 0.2s;
+            vertical-align: middle;
+        }
+
+        .file-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .file-table tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        .file-table th:nth-child(1) {
+            width: 35%;
+        }
+
+        .file-table th:nth-child(2) {
+            width: 12%;
+        }
+
+        .file-table th:nth-child(3) {
+            width: 12%;
+        }
+
+        .file-table th:nth-child(4) {
+            width: 12%;
+        }
+
+        .file-table th:nth-child(5) {
+            width: 12%;
+        }
+
+        .create-folder-btn {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1.5rem;
+        }
+
+        .create-folder-btn button {
+            padding: 0.6rem 1.2rem;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .create-folder-btn button:hover {
+            background: #4f46e5;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+        }
+
+        .create-folder-btn button:first-child {
+            background: #3b82f6;
+        }
+
+        .create-folder-btn button:first-child:hover {
+            background: #2563eb;
+        }
+
+        .footer {
+            text-align: center;
+            color: #9ca3af;
+            padding: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        td:first-child {
+            color: #3b82f6;
+        }
+
+        .folder-item {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .folder-item:hover {
+            background-color: #f3f4f6 !important;
+        }
+
+        /* 新增弹窗样式 */
+        .modal-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 400px;
+            max-width: 90%;
+            position: relative;
+            animation: modalShow 0.3s ease;
+        }
+
+        @keyframes modalShow {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #6b7280;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: #1f2937;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #6b7280;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .modal-actions button {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .confirm-btn {
+            background: #6366f1;
+            color: white;
+        }
+
+        .confirm-btn:hover {
+            background: #4f46e5;
+        }
+
+        .cancel-btn {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .cancel-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .delete-btn {
+            padding: 0.4rem 0.8rem;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .delete-btn:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .file-container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+
+            .file-table {
+                display: block;
+                overflow-x: auto;
+            }
+
+            .file-table th,
+            .file-table td {
+                min-width: 120px;
+            }
+        }
+
+        /* 新增右键菜单样式 */
+        .context-menu {
+            position: fixed;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            padding: 0.5rem 0;
+            z-index: 1000;
+        }
+
+        .context-menu .menu-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .context-menu .menu-item:hover {
+            background-color: #f3f4f6;
+        }
+
+        /* 重命名弹窗样式 */
+        #renameModal {
+            display: none;
+        }
+
+        /* 上传文件进度条样式 */
+        .progress-container {
+            margin-top: 1rem;
+            width: 100%;
+            height: 20px;
+            background-color: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #6366f1;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+
+<body>
+<div class="header">
+    <span class="menu-icon">☰</span>
+    <div class="welcome-text">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path
+                    d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z" />
+        </svg>
+        <span id="welcome">欢迎回来，管理员</span>
+    </div>
+</div>
+
+<div class="file-container">
+    <h2 style="margin-bottom: 0.5rem; color: #1f2937;">📁 全部文件</h2>
+
+    <div class="path-nav" id="path-nav">
+        <span>当前位置：</span>
+    </div>
+
+    <table class="file-table">
+        <thead>
+        <tr>
+            <th>名称</th>
+            <th>类型</th>
+            <th>扩展名</th>
+            <th>大小</th>
+            <th>上传时间</th>
+        </tr>
+        </thead>
+        <tbody id="file-list"></tbody>
+    </table>
+
+    <div class="create-folder-btn">
+        <button onclick="showUploadModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+            </svg>
+            上传文件
+        </button>
+        <button onclick="createFolder()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+            </svg>
+            新建文件夹
+        </button>
+    </div>
+</div>
+
+<!-- 新增创建文件夹弹窗 -->
+<div class="modal-mask" id="createFolderModal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeModal()">×</span>
+        <div class="modal-title">新建文件夹</div>
+        <div class="input-group">
+            <label>文件夹名称</label>
+            <input type="text" id="folderName" placeholder="请输入文件夹名称">
+        </div>
+        <div class="modal-actions">
+            <button class="cancel-btn" onclick="closeModal()">取消</button>
+            <button class="confirm-btn" onclick="confirmCreate()">创建</button>
+        </div>
+    </div>
+</div>
+
+<!-- 重命名弹窗 -->
+<div class="modal-mask" id="renameModal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeRenameModal()">×</span>
+        <div class="modal-title">重命名</div>
+        <div class="input-group">
+            <label>新名称</label>
+            <input type="text" id="renameName" placeholder="请输入新名称">
+        </div>
+        <div class="modal-actions">
+            <button class="cancel-btn" onclick="closeRenameModal()">取消</button>
+            <button class="confirm-btn" onclick="confirmRename()">确认</button>
+        </div>
+    </div>
+</div>
+
+<!-- 上传文件弹窗 -->
+<div class="modal-mask" id="uploadModal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeUploadModal()">×</span>
+        <div class="modal-title">上传文件</div>
+        <div class="input-group">
+            <label>选择文件</label>
+            <input type="file" id="uploadFile" accept="*/*" multiple>
+        </div>
+        <div class="input-group">
+            <label>文件名</label>
+            <input type="text" id="uploadFileName" placeholder="请输入文件名">
+        </div>
+        <div class="modal-actions">
+            <button class="cancel-btn" onclick="closeUploadModal()">取消</button>
+            <button class="confirm-btn" onclick="confirmUpload()">上传</button>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="uploadProgressBar"></div>
+        </div>
+    </div>
+</div>
+
+<div class="footer">© 2025 Vnollx SkyDrive</div>
+
+<!-- 新增右键菜单 -->
+<div class="context-menu" id="contextMenu">
+    <div class="menu-item" data-action="rename">重命名</div>
+    <div class="menu-item" data-action="delete">删除</div>
+    <div class="menu-item" data-action="preview">预览</div>
+    <div class="menu-item" data-action="share">分享</div>
+    <div class="menu-item" data-action="download">下载</div>
+</div>
+<script>
+    let currentPath = [{ name: '根目录', id: 0 }];
+    let currentRenameItem = null;
+
+    window.addEventListener('DOMContentLoaded', async () => {
+        const welcomeElement = document.getElementById('welcome');
+        const name = localStorage.getItem('name');
+        if (name) {
+            welcomeElement.textContent = `欢迎回来，${name}`;
+        }
+        await loadFiles(currentPath[currentPath.length - 1].id);
+        updatePathNavigation();
+    });
+
+    async function loadFiles(parentFolderId) {
+        const token = localStorage.getItem('token');
+        const fileList = document.getElementById('file-list');
+
+        try {
+            const formData = new FormData();
+            formData.append('ParentFolderId', parentFolderId);
+            formData.append('Token', token);
+
+            const [fileResp, folderResp] = await Promise.all([
+                fetch('/file/enquerys', { method: 'POST', body: formData }),
+                fetch('/folder/enquerys', { method: 'POST', body: formData })
+            ]);
+
+            const fileData = await fileResp.json();
+            const folderData = await folderResp.json();
+
+            const allItems = [
+                ...(fileData.base?.code === 200 ? fileData.files.map(f => ({ ...f, type: 'file' })) : []),
+                ...(folderData.base?.code === 200 ? folderData.folders.map(f => ({ ...f, type: 'folder' })) : [])
+            ].sort((a, b) => {
+                const timeA = new Date(a.upload_time).getTime();
+                const timeB = new Date(b.upload_time).getTime();
+                return timeB - timeA;
+            });
+
+            renderFileList(allItems);
+        } catch (error) {
+            console.error('请求失败:', error);
+            Swal.fire({
+                icon: 'error',
+                title: '获取文件列表失败，请检查网络连接',
+                text: error
+            });
+        }
+    }
+
+    function renderFileList(items) {
+        const fileList = document.getElementById('file-list');
+        fileList.innerHTML = '';
+
+        items.forEach(item => {
+            const row = document.createElement('tr');
+            if (item.type === 'file') {
+                row.dataset.fileId = item.file_id;
+                row.innerHTML = `
+                        <td>${getFileIcon(item.postfix)} ${item.name}</td>
+                        <td>文件</td>
+                        <td>${item.postfix}</td>
+                        <td>${formatFileSize(item.size)}</td>
+                        <td>${formatDateTime(item.upload_time)}</td>
+                    `;
+            } else {
+                row.className = 'folder-item';
+                row.dataset.folderId = item.folder_id;
+                row.innerHTML = `
+                        <td>📁 ${item.name}</td>
+                        <td>文件夹</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>${formatDateTime(item.upload_time)}</td>
+                    `;
+                row.addEventListener('click', (event) => {
+                    if (event.target.classList.contains('delete-btn')) {
+                        return;
+                    }
+                    currentPath.push({ name: item.name, id: item.folder_id });
+                    loadFiles(item.folder_id);
+                    updatePathNavigation();
+                });
+            }
+            row.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                currentItem = row;
+                contextMenu.style.left = `${e.clientX}px`;
+                contextMenu.style.top = `${e.clientY}px`;
+                contextMenu.style.display = 'block';
+            });
+            fileList.appendChild(row);
+        });
+    }
+
+    function updatePathNavigation() {
+        const pathNav = document.getElementById('path-nav');
+        pathNav.innerHTML = '<span>当前位置：</span>';
+
+        currentPath.forEach((path, index) => {
+            const link = document.createElement('a');
+            link.textContent = path.name;
+            link.onclick = () => {
+                if (index < currentPath.length - 1) {
+                    currentPath = currentPath.slice(0, index + 1);
+                    loadFiles(path.id);
+                    updatePathNavigation();
+                }
+            };
+
+            pathNav.appendChild(link);
+            if (index < currentPath.length - 1) {
+                const separator = document.createElement('span');
+                separator.textContent = ' › ';
+                pathNav.appendChild(separator);
+            }
+        });
+    }
+
+    function getFileIcon(postfix) {
+        const iconMap = {
+            'jpg': '🖼️', 'png': '🖼️', 'pdf': '📄',
+            'doc': '📄', 'xls': '📊', 'ppt': '📊',
+            'txt': '📄', 'zip': '🗜️', 'mp4': '🎬',
+            'mp3': '🎵'
+        };
+        return iconMap[postfix.toLowerCase()] || '📄';
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function formatDateTime(timestamp) {
+        const date = new Date(timestamp);
+        return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+        })}`;
+    }
+
+    // 新增弹窗相关函数
+    function showModal() {
+        document.getElementById('createFolderModal').style.display = 'flex';
+        document.getElementById('folderName').value = '';
+        document.getElementById('folderName').focus();
+    }
+
+    function closeModal() {
+        document.getElementById('createFolderModal').style.display = 'none';
+    }
+
+    // 修改createFolder函数
+    async function confirmCreate() {
+        const folderName = document.getElementById('folderName').value.trim();
+        if (!folderName) {
+            alert('文件夹名称不能为空');
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const parentFolderId = currentPath[currentPath.length - 1].id.toString();
+
+            const formData = new FormData();
+            formData.append('ParentFolderId', parentFolderId.toString());
+            formData.append('Token', token);
+            formData.append('Name', folderName);
+
+            const response = await fetch('/folder/create', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.base.code === 200) {
+                closeModal();
+                // 刷新当前目录
+                await loadFiles(parentFolderId);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: '创建文件夹失败',
+                    text: data.base.msg
+                });
+            }
+        } catch (error) {
+            console.error('创建文件夹失败:', error);
+            Swal.fire({
+                icon: 'error',
+                title: '创建文件夹失败，请检查网络连接',
+                text: error
+            });
+        }
+    }
+
+    // 修改原有createFolder函数
+    function createFolder() {
+        showModal();
+    }
+
+    // 添加点击外部关闭功能
+    document.getElementById('createFolderModal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('createFolderModal')) {
+            closeModal();
+        }
+    });
+
+    // 添加ESC关闭功能
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
+
+    async function deleteFile(fileId) {
+        const result = await Swal.fire({
+            title: '确认要删除该文件吗？',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: '删除',
+            cancelButtonText: '取消'
+        });
+
+        // 如果用户点击了 "删除" 按钮 (即确认删除)
+        if (!result.isConfirmed) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const formData = new FormData();
+            formData.append('Token', token);
+            formData.append('FileId', fileId.toString());
+
+            const response = await fetch('/file/delete', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.base.code === 200) {
+                // 删除文件成功后，重新加载当前文件夹的文件列表
+                await loadFiles(currentPath[currentPath.length - 1].id);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: '删除失败',
+                    text: data.base.msg
+                });
+            }
+        } catch (error) {
+            console.error('删除文件失败:', error);
+            Swal.fire({
+                icon: 'error',
+                title: '删除文件失败，请检查网络连接',
+                text: error
+            });
+        }
+    }
+
+    async function deleteFolder(folderId) {
+        const result = await Swal.fire({
+            title: '确认要删除该文件夹吗？',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: '删除',
+            cancelButtonText: '取消'
+        });
+
+        // 如果用户点击了 "删除" 按钮 (即确认删除)
+        if (!result.isConfirmed) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const formData = new FormData();
+            formData.append('Token', token);
+            formData.append('FolderId', folderId.toString());
+            const response = await fetch('/folder/delete', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.base.code === 200) {
+                await loadFiles(currentPath[currentPath.length - 1].id);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: '删除失败',
+                    text: data.base.msg
+                });
+            }
+        } catch (error) {
+            console.error('删除文件夹失败:', error);
+            Swal.fire({
+                icon: 'error',
+                title: '删除文件夹失败，请检查网络连接',
+                text: error
+            });
+        }
+    }
+
+    // 右键菜单相关代码
+    const contextMenu = document.getElementById('contextMenu');
+    let currentItem = null;
+
+    contextMenu.addEventListener('click', (e) => {
+        if (e.target.classList.contains('menu-item')) {
+            const action = e.target.dataset.action;
+            if (currentItem) {
+                if (action === 'delete') {
+                    if (currentItem.classList.contains('folder-item')) {
+                        deleteFolder(parseInt(currentItem.dataset.folderId));
+                    } else {
+                        deleteFile(parseInt(currentItem.dataset.fileId));
+                    }
+                } else if (action === 'rename') {
+                    currentRenameItem = currentItem;
+                    showRenameModal();
+                }else if (action === 'preview' && currentItem.dataset.fileId) {
+                    const fileId = currentItem.dataset.fileId;
+                    const postfix = currentItem.children[2].textContent;
+                    previewFile(fileId, postfix);
+                }else if(action==="download"&&currentItem.dataset.fileId){
+                    const fileId = currentItem.dataset.fileId;
+                    const postfix = currentItem.children[2].textContent;
+                    downloadFile(fileId, postfix);
+                }
+                contextMenu.style.display = 'none';
+            }
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!contextMenu.contains(e.target) && e.target.closest('tr') !== currentItem) {
+            contextMenu.style.display = 'none';
+        }
+    });
+
+    function showRenameModal() {
+        document.getElementById('renameModal').style.display = 'flex';
+        document.getElementById('renameName').value = '';
+        document.getElementById('renameName').focus();
+    }
+
+    function closeRenameModal() {
+        document.getElementById('renameModal').style.display = 'none';
+    }
+
+    async function confirmRename() {
+        const newName = document.getElementById('renameName').value.trim();
+        if (!newName) {
+            alert('新名称不能为空');
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        const isFolder = currentRenameItem.classList.contains('folder-item');
+        const id = isFolder ? currentRenameItem.dataset.folderId : currentRenameItem.dataset.fileId;
+        const parentFolderId = currentPath[currentPath.length - 1].id.toString();
+
+        const formData = new FormData();
+        formData.append('Name', newName);
+        formData.append(isFolder ? 'FolderId' : 'FileId', id);
+        formData.append('Token', token);
+        formData.append('ParentFolderId', parentFolderId);
+
+        const url = isFolder ? '/folder/update' : '/file/update';
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.base.code === 200) {
+                closeRenameModal();
+                await loadFiles(currentPath[currentPath.length - 1].id);
+                Swal.fire({
+                    icon: 'success',
+                    title: '重命名成功',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: '重命名失败',
+                    text: data.base.msg
+                });
+            }
+        } catch (error) {
+            console.error('重命名失败:', error);
+            Swal.fire({
+                icon: 'error',
+                title: '重命名失败，请检查网络连接',
+                text: error
+            });
+        }
+    }
+
+    // 显示上传模态框
+    function showUploadModal() {
+        document.getElementById('uploadModal').style.display = 'flex';
+        document.getElementById('uploadFile').value = null;
+        document.getElementById('uploadFileName').value = '';
+        document.getElementById('uploadProgressBar').style.width = '0%';
+    }
+
+    // 关闭上传模态框
+    function closeUploadModal() {
+        document.getElementById('uploadModal').style.display = 'none';
+    }
+
+    // 确认上传处理
+    async function confirmUpload() {
+        const fileInput = document.getElementById('uploadFile');
+        const fileNameInput = document.getElementById('uploadFileName');
+        const files = fileInput.files;
+
+        if (files.length === 0) {
+            Swal.fire({
+                icon: 'error',
+                title: '请选择要上传的文件'
+            });
+            return;
+        }
+
+        try {
+            for (const file of files) {
+                // 处理单个文件上传
+                await handleSingleFileUpload(file, fileNameInput.value);
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: '文件上传成功',
+                showConfirmButton: false,
+                timer: 1500
+            });
+            closeUploadModal();
+            await loadFiles(currentPath[currentPath.length - 1].id);
+        } catch (error) {
+            console.error('文件上传失败:', error);
+            Swal.fire({
+                icon: 'error',
+                title: '文件上传失败',
+                text: error.message
+            });
+        }
+    }
+
+    // 处理单个文件上传
+    async function handleSingleFileUpload(file, customName,id) {
+        const parentFolderId = currentPath[currentPath.length - 1].id.toString();
+        const token = localStorage.getItem('token');
+        const fileName = customName || file.name;
+        const [name, postfix] = file.name.split('.');
+        const size = file.size;
+
+        // 发送上传请求
+        const formData = new FormData();
+        formData.append('Token', token);
+        formData.append('ParentFolderId', parentFolderId);
+        formData.append('Name', fileName);
+        formData.append('Postfix', postfix);
+        formData.append('Size', size);
+        const response = await fetch('/file/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        if (data.base.code === 200) {
+            await uploadToMinIO(file,postfix,data.file_id);
+        }else{
+            throw new Error(data.base.msg);
+        }
+    }
+
+    // 上传到MinIO的示例实现（需替换为你的实际代码）
+    async function uploadToMinIO(file,postfix,fileid) {
+        AWS.config.update({
+            accessKeyId: 'vnollxvnollx',
+            secretAccessKey: 'vnollxvnollxvnollx',
+            region: 'us-east-1',
+            endpoint: 'http://localhost:9000',
+            s3ForcePathStyle: true,
+            signatureVersion: 'v4'
+        });
+        const s3 = new AWS.S3();
+        // 生成唯一文件名
+        const fileName = "FileId="+fileid+"."+postfix;
+
+        // 使用 Promise 方式上传
+        const uploadResult = await new Promise((resolve, reject) => {
+            s3.upload({
+                Bucket: 'file',
+                Key: fileName,
+                Body: file,
+                ContentType: file.type
+            }, (err, data) => {
+                if (err) reject(err);
+                else resolve(data);
+            });
+        });
+    }
+    async function downloadFile(fileid, postfix) {
+        // 配置 AWS SDK
+        AWS.config.update({
+            accessKeyId: 'vnollxvnollx',
+            secretAccessKey: 'vnollxvnollxvnollx',
+            region: 'us-east-1',
+            endpoint: 'http://localhost:9000',
+            s3ForcePathStyle: true,
+            signatureVersion: 'v4'
+        });
+
+        // 创建 S3 实例
+        const s3 = new AWS.S3();
+
+        // 构建文件名
+        const fileName = `FileId=${fileid}.${postfix}`;
+
+        // 定义存储桶名称和文件键
+        const bucketName = 'file';
+        const key = fileName;
+
+        try {
+            // 从 S3 获取文件
+            const params = {
+                Bucket: bucketName,
+                Key: key
+            };
+            const data = await s3.getObject(params).promise();
+
+            // 创建下载链接并触发下载
+            const blob = new Blob([data.Body], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('文件下载失败:', error);
+        }
+    }
+    async function getPreviewUrl(fileid,postfix) {
+        AWS.config.update({
+            accessKeyId: 'vnollxvnollx',
+            secretAccessKey: 'vnollxvnollxvnollx',
+            region: 'us-east-1',
+            endpoint: 'http://localhost:9000',
+            s3ForcePathStyle: true,
+            signatureVersion: 'v4'
+        });
+        const s3 = new AWS.S3();
+        const fileName = "FileId="+fileid+"."+postfix;
+        const params = {
+            Bucket: 'file',
+            Key: fileName,
+            Expires: 3600 // URL 有效期，单位为秒
+        };
+
+        return new Promise((resolve, reject) => {
+            s3.getSignedUrl('getObject', params, (err, url) => {
+                if (err) reject(err);
+                else resolve(url);
+            });
+        });
+    }
+    async function previewFile(fileId, postfix) {
+        try {
+            const url = await getPreviewUrl(fileId, postfix);
+            await showPreviewModal(url, postfix);
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: '预览失败',
+                text: error.message
+            });
+        }
+    }
+
+    async function showPreviewModal(url, fileType) {
+        const content = await getFilePreviewContent(url, fileType);
+        Swal.fire({
+            title: '文件预览',
+            html: `
+                <div style="width: 100%; height: 100%;">
+                    ${content}
+                </div>
+            `,
+            showCloseButton: true,
+            showCancelButton: true,
+            focusConfirm: false,
+            confirmButtonText: '关闭',
+            customClass: {
+                container: 'swal2-preview-modal'
+            }
+        });
+    }
+
+    async function getFilePreviewContent(url, fileType) {
+        const contentTypeMap = {
+            'jpg': 'image',
+            'jpeg': 'image',
+            'png': 'image',
+            'gif': 'image',
+            'mp4': 'video',
+            'pdf': 'pdf',
+            'txt': 'text'
+        };
+
+        const type = contentTypeMap[fileType.toLowerCase()] || 'default';
+
+        switch (type) {
+            case 'image':
+                return `<img src="${url}" alt="预览" style="max-width: 100%; max-height: 100%;">`;
+            case 'video':
+                return `
+                    <video controls style="width: 100%; height: 100%; object-fit: contain;">
+                        <source src="${url}" type="video/mp4">
+                        您的浏览器不支持视频预览。
+                    </video>
+                `;
+            case 'pdf':
+                return `
+                    <iframe src="${url}" type="application/pdf"
+                            style="width: 100%; height: 100%; border: none;"></iframe>
+                `;
+            case 'text':
+                const text = await fetchTextFile(url);
+                return `
+                    <pre style="overflow: auto; width: 100%; height: 100%; padding: 1rem;">
+                        ${text}
+                    </pre>
+                `;
+            default:
+                return `
+                    <a href="${url}" target="_blank" rel="noopener">
+                        点击下载预览
+                    </a>
+                `;
+        }
+    }
+
+    async function fetchTextFile(url) {
+        try {
+            const response = await fetch(url);
+            return await response.text();
+        } catch (error) {
+            return '无法加载文本内容';
+        }
+    }
+
+    // 在CSS中添加预览模态样式
+    const style = document.createElement('style');
+    style.textContent = `
+        .swal2-preview-modal .swal2-popup {
+            width: 90vw; /* 调整为 90% 视口宽度 */
+            height: 90vh; /* 调整为 90% 视口高度 */
+            max-width: none;
+            max-height: none;
+            overflow: hidden; /* 去除滚动条 */
+        }
+
+        .swal2-preview-modal .swal2-html-container {
+            overflow: hidden; /* 去除滚动条 */
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+</body>
+</html>
