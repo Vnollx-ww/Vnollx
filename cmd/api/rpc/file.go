@@ -52,3 +52,30 @@ func GetFileInfo(ctx context.Context, req *file.GetFileInfoRequest) (*file.GetFi
 func GetFilesInfo(ctx context.Context, req *file.GetFilesInfoRequest) (*file.GetFilesInfoResponse, error) {
 	return fileClient.GetFilesInfo(ctx, req)
 }
+func GetAllFiles(ctx context.Context, req *file.GetALLFilesRequest) (*file.GetAllFilesResponse, error) {
+	return fileClient.GetAllFiles(ctx, req)
+}
+func GetVideoFiles(ctx context.Context, req *file.GetVideoFilesRequest) (*file.GetVideoFilesResponse, error) {
+	return fileClient.GetVideoFiles(ctx, req)
+}
+func GetMusicFiles(ctx context.Context, req *file.GetMusicFilesRequest) (*file.GetMusicFilesResponse, error) {
+	return fileClient.GetMusicFiles(ctx, req)
+}
+func GetPictureFiles(ctx context.Context, req *file.GetPictureFilesRequest) (*file.GetPictureFilesResponse, error) {
+	return fileClient.GetPictureFiles(ctx, req)
+}
+func GetDocumentFiles(ctx context.Context, req *file.GetDocumentFilesRequest) (*file.GetDocumentFilesResponse, error) {
+	return fileClient.GetDocumentFiles(ctx, req)
+}
+func GetOtherFiles(ctx context.Context, req *file.GetOtherFilesRequest) (*file.GetOtherFilesResponse, error) {
+	return fileClient.GetOtherFiles(ctx, req)
+}
+func GetFilesByName(ctx context.Context, req *file.GetFilesByNameRequest) (*file.GetFilesByNameResponse, error) {
+	return fileClient.GetFilesByName(ctx, req)
+}
+func CreateShare(ctx context.Context, req *file.CreateShareRequest) (*file.CreateShareResponse, error) {
+	return fileClient.CreateShare(ctx, req)
+}
+func GetFileByCode(ctx context.Context, req *file.GetFileByCodeRequest) (*file.GetFileByCodeResponse, error) {
+	return fileClient.GetFileByCode(ctx, req)
+}

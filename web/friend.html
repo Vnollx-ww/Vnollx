@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>好友聊天 - Vnollx 网盘</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary-color: #2F80ED;
+            --secondary-color: #2D9CDB;
+            --sidebar-width: 300px;
+            --header-height: 70px;
+            --list-bg: #F9F9F9;
+            --active-bg: #E0F7FA;
+            --chat-bg: #F3F6F9;
+            --message-in-bg: #FFFFFF;
+            --message-out-bg: #E1F5FE;
+            --text-color: #333333;
+            --subtext-color: #888888;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            background-color: var(--chat-bg);
+        }
+
+        /* 左侧边栏 */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #FFFFFF;
+            border-right: 1px solid #E0E0E0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 好友列表 */
+        .friend-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-bottom: 1px solid #F0F0F0;
+        }
+
+        .friend-item:hover {
+            background: var(--list-bg);
+        }
+
+        .friend-item.active {
+            background: var(--active-bg);
+        }
+
+        .friend-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #EEE;
+            margin-right: 16px;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .friend-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .friend-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-color);
+        }
+
+        .last-message {
+            color: var(--subtext-color);
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .message-status {
+            text-align: right;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: var(--subtext-color);
+            margin-bottom: 4px;
+        }
+
+        .unread-count {
+            background: var(--primary-color);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* 右侧聊天区 */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--chat-bg);
+        }
+
+        /* 聊天头部 */
+        .chat-header {
+            height: var(--header-height);
+            background: #FFFFFF;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            border-bottom: 1px solid #E0E0E0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .current-friend {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .current-friend-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #EEE;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .current-friend-name {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .current-friend-status {
+            font-size: 13px;
+            color: var(--subtext-color);
+        }
+
+        /* 消息容器 */
+        .messages-container {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        /* 消息行容器 */
+        .message-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+        }
+
+        .user-message-row {
+            flex-direction: row-reverse;
+        }
+
+        /* 消息头像 */
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 消息气泡 */
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            position: relative;
+            animation: bubbleAppear 0.25s ease-out;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .friend-message {
+            background: var(--message-in-bg);
+            align-self: flex-start;
+        }
+
+        .user-message {
+            background: var(--message-out-bg);
+            align-self: flex-end;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: black;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        /* 输入区 */
+        .input-area {
+            background: #FFFFFF;
+            padding: 16px 24px;
+            border-top: 1px solid #E0E0E0;
+            display: flex;
+            gap: 16px;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #E0E0E0;
+            border-radius: 20px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .message-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .send-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 600;
+        }
+
+        .send-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        @keyframes bubbleAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        /* 新增搜索框样式 */
+        .search-container {
+            padding: 16px 20px;
+            border-top: 1px solid #F0F0F0;
+            background-color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #E0E0E0;
+            border-radius: 20px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+            max-width: 200px;
+        }
+
+        .search-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .search-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        .swal-search-popup {
+            border-radius: 12px !important;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+            max-width: 500px !important;
+        }
+
+        /* 标题样式 */
+        .swal-search-container .swal2-title {
+            font-size: 1.4rem;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+        }
+
+        /* 搜索结果项容器 */
+        .search-results-container {
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        /* 单个搜索结果项 */
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.2s;
+            border: 1px solid #eee;
+        }
+
+        .search-result-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            background: white;
+        }
+
+        /* 头像样式 */
+        .search-result-item .friend-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-size: cover;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 用户信息区域 */
+        .friend-info {
+            flex: 1;
+            margin-left: 16px;
+        }
+
+        .friend-name {
+            font-weight: 500;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .last-message {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* 添加好友按钮 */
+        .add-friend-btn {
+            background: #3498db;
+            color: white !important;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .add-friend-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+
+        /* 滚动条美化 */
+        .search-results-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .search-results-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .search-results-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        .search-results-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* 右键菜单样式 */
+        .context-menu {
+            position: absolute;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            padding: 8px 0;
+            min-width: 150px;
+        }
+
+        .context-menu-item {
+            padding: 8px 24px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            transition: background 0.2s;
+        }
+
+        .context-menu-item:hover {
+            background: #e0f7fa;
+        }
+
+        .context-menu-item:first-child {
+            border-radius: 4px 4px 0 0;
+        }
+
+        .context-menu-item:last-child {
+            border-radius: 0 0 4px 4px;
+        }
+    </style>
+</head>
+
+<body>
+<!-- 左侧好友列表 -->
+<div class="sidebar">
+    <div class="friend-list" id="friendList">
+        <!-- 动态加载好友项 -->
+    </div>
+    <!-- 新增搜索框 -->
+    <div class="search-container">
+        <input type="text" class="search-input" placeholder="搜索用户..." id="searchInput">
+        <button class="search-btn" onclick="searchUser()">搜索</button>
+    </div>
+</div>
+
+<!-- 右侧聊天区 -->
+<div class="chat-area">
+    <!-- 聊天头部 -->
+    <div class="chat-header">
+        <div class="current-friend">
+            <div>
+                <div id="name" class="current-friend-name"></div>
+                <div class="current-friend-status">在线</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 消息容器 -->
+    <div class="messages-container" id="messagesContainer">
+
+    </div>
+
+    <!-- 输入区 -->
+    <div class="input-area">
+        <input type="text" class="message-input" placeholder="输入消息..." id="messageInput">
+        <button class="send-btn" onclick="sendMessage()">发送</button>
+    </div>
+</div>
+
+<script>
+    var now = "";
+    var ws;
+    var nowavatar = "";
+    const contextMenu = document.createElement('div');
+    contextMenu.className = 'context-menu';
+    contextMenu.innerHTML = `
+            <div class="context-menu-item" id="deleteFriend">删除好友</div>
+            <div class="context-menu-item" id="deleteChat">删除聊天记录</div>
+        `;
+    document.body.appendChild(contextMenu);
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('请先登录');
+            }
+            const friends = await getFriendList();
+            renderFriendList(friends);
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: '加载失败',
+                text: error.message
+            });
+        }
+        connectWebSocket()
+    });
+
+    // 连接 WebSocket
+    function connectWebSocket() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.error('Token is missing');
+            return;
+        }
+        //106.54.223.38
+        const wsUrl = `ws://127.0.0.1:8880/user/ws?token=${token}`;
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = function () {
+            console.log('WebSocket连接已打开');
+        };
+
+        ws.onmessage = function (event) {
+            const message = JSON.parse(event.data);
+            if (message.type === 'message') {
+                displayIncomingMessage(message, false);
+            }
+        };
+
+        ws.onclose = function (event) {
+            console.log('WebSocket连接已关闭', event.code, event.reason);
+        };
+
+        ws.onerror = function (error) {
+            console.error('WebSocket发生错误:', error);
+        };
+    }
+
+    function displayIncomingMessage(message, isUser) {
+        if(now===""){
+            return
+        }
+        const container = document.getElementById('messagesContainer');
+        const msg = document.createElement('div');
+        msg.className = `message-row ${isUser ? 'user-message-row' : ''}`;
+
+        const avatarUrl = isUser ? localStorage.getItem('avatar') : nowavatar;
+        msg.innerHTML = `
+<div class="message-avatar" style="background-image: url(${avatarUrl})"></div>
+<div class="message-bubble ${isUser ? 'user-message' : 'friend-message'}">
+    <div>${message.content}</div>
+    <div class="message-time" style="color: black">${formatDateTime(new Date())}</div>
+</div>
+`;
+
+        container.appendChild(msg);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    async function getFriendList() {
+        var token = localStorage.getItem('token');
+        const response = await fetch('/user/getfriends', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ token })
+        });
+        const data = await response.json();
+        if (data.base.code!== 200) {
+            throw new Error(data.base.msg);
+        }
+        return data.friends;
+    }
+
+    function renderFriendList(friends) {
+        const container = document.getElementById('friendList');
+        container.innerHTML = friends.map(friend => `
+                    <div class="friend-item" data-user-id="${friend.user_id}" data-friend-name="${friend.name}">
+                        <div class="friend-avatar" style="background-image: url(${friend.avatar})"></div>
+                        <div class="friend-info">
+                            <div class="friend-name">${friend.name}</div>
+                            <div class="last-message">${friend.last_message || '点击开始聊天'}</div>
+                        </div>
+                        <div class="message-status">
+                            <div class="message-time">${friend.last_time || '未读'}</div>
+                            ${friend.unread_count > 0? `<div class="unread-count">${friend.unread_count}</div>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+        document.querySelectorAll('.friend-item').forEach((item, index) => {
+            item.addEventListener('click', function () {
+                document.querySelectorAll('.friend-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const friendData = friends[index];
+                nowavatar = friendData.avatar;
+                const friendName = this.dataset.friendName;
+                document.getElementById('name').textContent = friendName;
+                loadChatHistory(this.dataset.userId);
+            });
+
+            item.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                const rect = item.getBoundingClientRect();
+                contextMenu.style.left = `${rect.right}px`;
+                contextMenu.style.top = `${rect.top}px`;
+                contextMenu.style.display = 'block';
+
+                document.addEventListener('click', hideContextMenu);
+
+                const currentItem = item;
+
+                document.getElementById('deleteFriend').addEventListener('click', () => {
+                    deleteFriend(currentItem.dataset.userId);
+                    hideContextMenu();
+                });
+
+                document.getElementById('deleteChat').addEventListener('click', () => {
+                    deleteChatHistory(currentItem.dataset.userId);
+                    hideContextMenu();
+                });
+            });
+        });
+    }
+
+    async function getChatHistory(userId) {
+        try {
+            const token = localStorage.getItem('token');
+            var formdata = new FormData();
+            formdata.append('Token', token);
+            formdata.append('ToUserId', userId);
+            now = userId;
+            const response = await fetch('/user/getmessages', {
+                method: 'POST',
+                body: formdata,
+            });
+
+            const data = await response.json();
+            if (data.base.code!== 200) {
+                throw new Error(data.base.msg);
+            }
+
+            renderChatHistory(data.messages);
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: '加载失败',
+                text: error.message
+            });
+        }
+    }
+
+    function renderChatHistory(messages) {
+        messages.sort((a, b) => {
+            const dateA = new Date(a.create_time);
+            const dateB = new Date(b.create_time);
+            return dateA - dateB;
+        });
+
+        const container = document.getElementById('messagesContainer');
+        container.innerHTML = messages.map(message => {
+            const isUser = message.user_id === localStorage.getItem('id');
+            const avatarUrl = isUser ? localStorage.getItem('avatar') : nowavatar;
+            return `
+                <div class="message-row ${isUser ? 'user-message-row' : ''}">
+                    <div class="message-avatar" style="background-image: url(${avatarUrl})"></div>
+                    <div class="message-bubble ${isUser ? 'user-message' : 'friend-message'}">
+                        <div style="color: black">${message.content}</div>
+                        <div class="message-time" style="color: black">
+                            ${message.create_time}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function loadChatHistory(userId) {
+        document.getElementById('messagesContainer').innerHTML = '';
+        getChatHistory(userId);
+    }
+
+    function addMessage(text, isUser) {
+        const container = document.getElementById('messagesContainer');
+        const message = document.createElement('div');
+        message.className = `message-row ${isUser ? 'user-message-row' : ''}`;
+
+        const avatarUrl = isUser ? localStorage.getItem('avatar') : nowavatar;
+        message.innerHTML = `
+                    <div class="message-avatar" style="background-image: url(${avatarUrl})"></div>
+                    <div class="message-bubble ${isUser ? 'user-message' : 'friend-message'}">
+                        <div>${text}</div>
+                        <div class="message-time">
+                            ${formatDateTime(new Date())}
+                        </div>
+                    </div>
+                `;
+
+        container.appendChild(message);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function formatDateTime(date) {
+        const pad = (n) => n.toString().padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+            `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    }
+
+    async function sendMessage(userId) {
+        if (now === "") {
+            Swal.fire({
+                icon: 'error',
+                title: '发送消息失败',
+                text: "请先选择好友",
+            });
+            return;
+        }
+
+        try {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            var token = localStorage.getItem('token');
+            if (!message) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '消息不能为空'
+                });
+                return;
+            }
+            var f=new FormData();
+            f.append('Token',token);
+            f.append('ToUserId',now);
+            const resp = await fetch('/user/isfriend', {
+                method: 'POST',
+                body: f,
+            });
+            const data = await resp.json();
+            console.log(data);
+            if(data.ok===false){
+                Swal.fire({
+                    icon: 'error',
+                    title: '发送消息失败',
+                    text: "已不是好友",
+                });
+                return;
+            }
+            const messageData = {
+                type: 'message',
+                token: token,
+                touserid: now,
+                content: message
+            };
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(messageData));
+            }
+
+            addMessage(message, true);
+            input.value = '';
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: '发送消息失败',
+                text: error.message
+            });
+        }
+    }
+
+    document.getElementById('messageInput').addEventListener('keypress', e => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    async function searchUser() {
+        try {
+            const name = document.getElementById('searchInput').value.trim();
+            if (!name) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '请输入搜索关键词'
+                });
+                return;
+            }
+            const token = localStorage.getItem('token');
+            var formdata = new FormData
+            formdata.append('Token', token);
+            formdata.append('Name', name);
+            const response = await fetch('/user/search', {
+                method: 'POST',
+                body: formdata,
+            });
+
+            const data = await response.json();
+            if (data.base.code!== 200) {
+                throw new Error(data.base.msg);
+            }
+
+            showSearchResults(data.friends, name);
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: '搜索失败',
+                text: error.message
+            });
+        }
+    }
+
+    function showSearchResults(friends, name) {
+        const html = friends.map(friend => `
+            <div class="search-result-item" data-user-id="${friend.user_id}">
+                <div class="friend-avatar" style="background-image: url('${friend.avatar}')"></div>
+                <div class="friend-info">
+                    <div class="friend-name">${friend.name}</div>
+                    <div class="last-message">ID: ${friend.user_id}</div>
+                </div>
+                <button class="add-friend-btn" onclick="addFriend(this)">
+                    <i class="fas fa-user-plus"></i>
+                    添加好友
+                </button>
+            </div>
+        `).join('');
+
+        Swal.fire({
+            title: `<span class="search-title">找到<span class="highlight">${friends.length}</span>个"${name}"相关用户</span>`,
+            html: `
+                <div class="search-results-container">
+                    ${html}
+                </div>
+            `,
+            showCloseButton: true,
+            confirmButtonText: '关闭',
+            showConfirmButton: false,
+            width: '90%',
+            backdrop: 'rgba(0,0,0,0.2)',
+            customClass: {
+                container: 'swal-search-container',
+                popup: 'swal-search-popup',
+                closeButton: 'swal-close-btn'
+            },
+            didOpen: () => {
+                document.querySelectorAll('.search-result-item').forEach(item => {
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateX(-20px)';
+                    setTimeout(() => {
+                        item.style.transition = 'all 0.3s ease-out';
+                        item.style.opacity = '1';
+                        item.style.transform = 'translateX(0)';
+                    }, 100);
+                });
+            }
+        });
+    }
+
+    async function addFriend(button) {
+        const userId = button.closest('.search-result-item').dataset.userId;
+        var id=localStorage.getItem('id');
+        if(id===userId){
+            Swal.fire({
+                icon: 'error',
+                title: '添加失败',
+                text: "你不能添加自己为好友"
+            });
+            return ;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            var formdata = new FormData();
+            formdata.append('Token', token);
+            formdata.append('ToUserId', userId);
+            const resp=await fetch('/user/isfriend',{
+                method:'POST',
+                body:formdata,
+            });
+            const d=await resp.json();
+            if(d.base.code===200&&d.ok===true){
+                Swal.fire({
+                    icon: 'error',
+                    title: '添加失败',
+                    text: "已是好友无需再次添加",
+                });
+                return
+            }
+            const response = await fetch('/notification/sendnotification', {
+                method: 'POST',
+                body: formdata,
+            });
+
+            const data = await response.json();
+            if (data.base.code === 200) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '成功',
+                    text: '好友请求已发送'
+                });
+                const friends = await getFriendList();
+                renderFriendList(friends);
+            } else {
+                throw new Error(data.base.msg);
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: '添加失败',
+                text: error.message
+            });
+        }
+    }
+
+    function hideContextMenu() {
+        contextMenu.style.display = 'none';
+        document.querySelectorAll('.context-menu-item').forEach(item => {
+            item.removeEventListener('click', null);
+        });
+        document.removeEventListener('click', hideContextMenu);
+    }
+
+    async function deleteFriend(userId) {
+        try {
+            const token = localStorage.getItem('token');
+            var formdata=new FormData;
+            formdata.append('Token',token);
+            formdata.append('ToUserId',userId);
+            const response = await fetch('/user/deletefriend', {
+                method: 'POST',
+                body: formdata,
+            });
+
+            const data = await response.json();
+            if (data.base.code === 200) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '成功',
+                    text: '好友已删除'
+                });
+                const friends = await getFriendList();
+                renderFriendList(friends);
+            } else {
+                throw new Error(data.base.msg);
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: '删除失败',
+                text: error.message
+            });
+        }
+    }
+
+    async function deleteChatHistory(userId) {
+        try {
+            const token = localStorage.getItem('token');
+            var formdata=new FormData
+            formdata.append('Token',token);
+            formdata.append('ToUserId',userId);
+            const response = await fetch('/user/deletemessage', {
+                method: 'POST',
+                body: formdata,
+            });
+
+            const data = await response.json();
+            if (data.base.code === 200) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '成功',
+                    text: '聊天记录已删除'
+                });
+                if (userId === now) {
+                    document.getElementById('messagesContainer').innerHTML = '';
+                }
+            } else {
+                throw new Error(data.base.msg);
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: '删除失败',
+                text: error.message
+            });
+        }
+    }
+</script>
+</body>
+
+</html>

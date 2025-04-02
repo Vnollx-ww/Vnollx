@@ -39,6 +39,7 @@ func init() {
 	_ = db.AutoMigrate(&Folder{})
 	_ = db.AutoMigrate(&Share{})
 	_ = db.AutoMigrate(&File{})
+	_ = db.AutoMigrate(&Notification{})
 	//_ = db.AutoMigrate(&FolderRelation{})
 	//初始化后的db赋给全局变量DB，没赋值的化DB就是一个nil
 	DB = db

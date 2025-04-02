@@ -13,8 +13,9 @@ import (
 var MinioClient *minio.Client
 
 func init() {
-	endpoint := "localhost:9000"
+	//endpoint := "localhost:9000"
 	//endpoint := "my-minio:9000"
+	endpoint := "106.54.223.38:9000"
 	accessKeyID := "vnollxvnollx"
 	secretAccessKey := "vnollxvnollxvnollx"
 

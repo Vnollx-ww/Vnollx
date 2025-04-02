@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件管理中心</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.28/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.28/dist/sweetalert2.min.js"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1192.0.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --background: #f8f9fa;
+            --text-primary: #2b2d42;
+            --text-secondary: #8d99ae;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            background: var(--background);
+            margin: 0;
+            padding: 2rem;
+            color: var(--text-primary);
+        }
+
+        .category-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--card-bg);
+            padding: 0.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .category-btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-secondary);
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .category-btn.active {
+            color: white;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 0 4px 6px rgba(67, 97, 238, 0.2);
+        }
+
+        .category-btn:hover:not(.active) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            color: var(--primary-color);
+        }
+
+        .error-tip {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 2rem;
+            display: none;
+            border: 1px solid #fecaca;
+        }
+
+        .file-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem 0;
+        }
+
+        .file-item {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .file-item:hover::after {
+            opacity: 1;
+        }
+
+        .file-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+            word-break: break-all;
+        }
+
+        .file-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .context-menu {
+            position: fixed;
+            background: var(--card-bg);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            display: none;
+            z-index: 1000;
+            min-width: 160px;
+            overflow: hidden;
+        }
+
+        .context-menu-item {
+            padding: 0.8rem 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .context-menu-item:hover {
+            background: #f1f5f9;
+        }
+
+        .context-menu-item::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* 预览样式优化 */
+        .swal2-popup.preview-popup {
+            border-radius: 16px !important;
+            overflow: hidden !important;
+            max-width: 90vw !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+        }
+
+        .preview-media {
+            max-width: 85vw;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .swal2-close {
+            color: var(--primary-color) !important;
+            font-size: 1.8rem !important;
+            transition: transform 0.2s ease !important;
+        }
+
+        .swal2-close:hover {
+            transform: rotate(90deg) scale(1.1);
+        }
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+
+        .search-input {
+            padding: 0.8rem 1.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #ffffff;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            flex: 1;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+        }
+
+        .search-button {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .search-button:hover {
+            transform: translateY(-1px);
+        }
+
+    </style>
+</head>
+
+<body>
+<div class="category-buttons">
+    <div class="button-group">
+        <button class="category-btn active" data-api="/file/getallfiles">全部文件</button>
+        <button class="category-btn" data-api="/file/getvideofiles">视频</button>
+        <button class="category-btn" data-api="/file/getpicturefiles">图片</button>
+        <button class="category-btn" data-api="/file/getdocumentfiles">文档</button>
+        <button class="category-btn" data-api="/file/getmusicfiles">音乐</button>
+        <button class="category-btn" data-api="/file/getotherfiles">其他</button>
+    </div>
+    <div class="search-container">
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索文件">
+    </div>
+</div>
+<div class="error-tip">加载文件失败，请重试</div>
+<div class="file-list" id="fileList"></div>
+
+<script>
+    // AWS 配置
+    AWS.config.update({
+        accessKeyId: 'vnollxvnollx',
+        secretAccessKey: 'vnollxvnollxvnollx',
+        region: 'us-east-1',
+        endpoint: 'http://106.54.223.38:9000',
+        s3ForcePathStyle: true,
+        signatureVersion: 'v4'
+    });
+
+    // 公共函数
+    function formatFileSize(size) {
+        if (size < 1024) return size + 'B';
+        else if (size < 1024 * 1024) return (size / 1024).toFixed(2) + 'KB';
+        else if (size < 1024 * 1024 * 1024) return (size / (1024 * 1024)).toFixed(2) + 'MB';
+        else return (size / (1024 * 1024 * 1024)).toFixed(2) + 'GB';
+    }
+
+    const formatUploadTime = time => {
+        const date = new Date(time);
+        return date.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    // 预览功能实现
+    const getPreviewUrl = async (fileId, postfix) => {
+        const s3 = new AWS.S3();
+        const params = {
+            Bucket: 'file',
+            Key: `FileId=${fileId}.${postfix}`,
+            Expires: 3600
+        };
+        return new Promise((resolve, reject) => {
+            s3.getSignedUrl('getObject', params, (err, url) => {
+                err? reject(err) : resolve(url);
+            });
+        });
+    };
+
+    const previewFile = async (fileId, postfix) => {
+        try {
+            const fileType = postfix.toLowerCase();
+            const previewUrl = await getPreviewUrl(fileId, postfix);
+
+            const mediaTypes = {
+                image: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+                video: ['mp4', 'webm', 'ogg'],
+                document: ['pdf', 'doc', 'docx']
+            };
+
+            let content = '';
+            if (mediaTypes.image.includes(fileType)) {
+                content = `<img src="${previewUrl}" class="preview-media">`;
+            } else if (mediaTypes.video.includes(fileType)) {
+                content = `
+                <video controls class="preview-media">
+                    <source src="${previewUrl}" type="video/${fileType}">
+                    您的浏览器不支持视频预览
+                </video>
+            `;
+            } else {
+                return Swal.fire('不支持预览', '该文件类型暂不支持直接预览', 'info');
+            }
+
+            Swal.fire({
+                html: content,
+                showConfirmButton: false,
+                showCloseButton: true, // 关键配置
+                width: 'auto',
+                padding: 0,
+                background: 'transparent',
+                customClass: {
+                    popup: 'preview-popup'
+                },
+                didOpen: () => {
+                    const media = Swal.getPopup().querySelector('img, video');
+                    const closeButton = Swal.getPopup().querySelector('.swal2-close');
+
+                    // 关闭按钮样式
+                    closeButton.style.color = 'white';
+                    closeButton.style.fontSize = '24px';
+                    closeButton.style.position = 'absolute';
+                    closeButton.style.top = '10px';
+                    closeButton.style.right = '10px';
+
+                    // 自适应尺寸调整
+                    const adjustSize = () => {
+                        const maxWidth = window.innerWidth * 0.9;
+                        const maxHeight = window.innerHeight * 0.8;
+
+                        if (media.naturalWidth > maxWidth || media.naturalHeight > maxHeight) {
+                            const ratio = Math.min(
+                                maxWidth / media.naturalWidth,
+                                maxHeight / media.naturalHeight
+                            );
+                            media.style.width = `${media.naturalWidth * ratio}px`;
+                        }
+                    };
+
+                    if (media.tagName === 'IMG') {
+                        media.onload = adjustSize;
+                    } else {
+                        media.addEventListener('loadedmetadata', adjustSize);
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('预览失败:', error);
+            Swal.fire('错误', '文件预览失败', 'error');
+        }
+    };
+
+    // 文件下载功能
+    const downloadFile = async (fileId, postfix) => {
+        const s3 = new AWS.S3();
+        const params = {
+            Bucket: 'file',
+            Key: `FileId=${fileId}.${postfix}`
+        };
+
+        try {
+            const data = await s3.getObject(params).promise();
+            const blob = new Blob([data.Body]);
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `FileId=${fileId}.${postfix}`;
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('下载失败:', error);
+            Swal.fire('错误', '文件下载失败', 'error');
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const contextMenu = document.createElement('div');
+        contextMenu.className = 'context-menu';
+        contextMenu.innerHTML = `
+        <div class="context-menu-item" data-action="download">下载</div>
+        <div class="context-menu-item" data-action="preview">预览</div>
+    `;
+        document.body.appendChild(contextMenu);
+
+        // 右键菜单处理
+        let currentFile = null;
+        document.addEventListener('contextmenu', e => {
+            if (e.target.closest('.file-item')) {
+                e.preventDefault();
+                currentFile = e.target.closest('.file-item').dataset;
+                contextMenu.style.display = 'block';
+                contextMenu.style.left = `${e.pageX}px`;
+                contextMenu.style.top = `${e.pageY}px`;
+            }
+        });
+
+        document.addEventListener('click', () => {
+            contextMenu.style.display = 'none';
+        });
+
+        contextMenu.addEventListener('click', e => {
+            if (e.target.dataset.action === 'download') {
+                downloadFile(currentFile.fileId, currentFile.postfix);
+            } else if (e.target.dataset.action === 'preview') {
+                previewFile(currentFile.fileId, currentFile.postfix);
+            }
+        });
+
+        // 文件分类映射（根据后缀名匹配）
+        const categoryMap = {
+            '视频': ['mp4', 'webm', 'ogg','mov'],
+            '图片': ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+            '文档': ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'],
+            '音乐': ['mp3', 'wav', 'ogg', 'flac'],
+            '其他': [] // 其他类型文件
+        };
+
+        // 渲染文件列表
+        const renderFiles = (allFiles, searchTerm) => {
+            const activeBtn = document.querySelector('.category-btn.active');
+            const category = activeBtn? activeBtn.textContent.trim() : '全部文件';
+
+            let filteredFiles = allFiles;
+
+            // 分类过滤
+            if (category!== '全部文件') {
+                if (category === '其他') {
+                    // 其他分类：排除所有已知分类的文件
+                    filteredFiles = filteredFiles.filter(file => {
+                        const postfix = file.postfix.toLowerCase();
+                        return!Object.values(categoryMap).some(arr => arr.includes(postfix));
+                    });
+                } else {
+                    // 根据后缀名匹配分类
+                    const validPostfixes = categoryMap[category] || [];
+                    filteredFiles = filteredFiles.filter(file => {
+                        return validPostfixes.includes(file.postfix.toLowerCase());
+                    });
+                }
+            }
+
+            // 搜索过滤
+            if (searchTerm) {
+                filteredFiles = filteredFiles.filter(file => {
+                    const name = file.name.toLowerCase();
+                    const postfix = file.postfix.toLowerCase();
+                    return name.includes(searchTerm) || postfix.includes(searchTerm);
+                });
+            }
+
+            // 排序
+            filteredFiles = filteredFiles.sort((a, b) => new Date(b.upload_time) - new Date(a.upload_time));
+
+            // 渲染
+            document.getElementById('fileList').innerHTML = filteredFiles.map(file => `
+                <div class="file-item"
+                    data-file-id="${file.file_id}"
+                    data-postfix="${file.postfix}">
+                    <div class="file-name">${file.name}.${file.postfix}</div>
+                    <div class="file-info">
+                        <span>大小：${formatFileSize(file.size)}</span>
+                        <span>上传：${formatUploadTime(file.upload_time)}</span>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        // 文件分类加载（强制查询数据库）
+        const loadFiles = async () => {
+            try {
+                // 每次都发起网络请求
+                const formData = new FormData();
+                formData.append('Token', localStorage.getItem('token'));
+                formData.append("Name", '');
+                const response = await fetch('/file/getallfiles', { method: 'POST', body: formData });
+                const { base, files } = await response.json();
+                if (base.code === 200) {
+                    // 更新缓存
+                    localStorage.setItem('all-files', JSON.stringify(files));
+                    renderFiles(files, '');
+                } else {
+                    throw new Error(base.msg);
+                }
+            } catch (error) {
+                document.querySelector('.error-tip').style.display = 'block';
+                console.error('加载失败:', error);
+            }
+        };
+
+        // 搜索框事件监听
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.trim();
+            const allFiles = JSON.parse(localStorage.getItem('all-files')) || [];
+            renderFiles(allFiles, searchTerm);
+        });
+
+        // 分类按钮事件（保持原有逻辑不变）
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                searchInput.value = '';
+                const allFiles = JSON.parse(localStorage.getItem('all-files')) || [];
+                renderFiles(allFiles, '');
+            });
+        });
+
+        // 初始加载（强制查询数据库）
+        loadFiles();
+    });
+</script>
+</body>
+</html>

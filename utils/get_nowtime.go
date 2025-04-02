@@ -1,19 +1,15 @@
 package utils
 
 import (
-	"log"
 	"time"
 )
 
 func GetNowTime() (string, error) {
-	location, err := time.LoadLocation("Asia/Shanghai")
-	if err != nil {
-		log.Println("获取时区失败:", err)
-		return "", err
-	}
+	// 手动设置时区为上海时区（UTC+8）
+	shanghai := time.FixedZone("Asia/Shanghai", 8*60*60)
 
 	// 获取当前时间并转换为上海时区时间
-	currentTime := time.Now().In(location)
+	currentTime := time.Now().In(shanghai)
 
 	// 定义时间格式 (例如：yyyy-MM-dd HH:mm:ss)
 	format := "2006-01-02 15:04:05"

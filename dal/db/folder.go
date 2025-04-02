@@ -14,6 +14,16 @@ type Folder struct {
 	UploadTime     string `gorm:"not null" json:"upload_time,omitempty"`
 }
 
+func GetFolderCountByUserId(userId int64) (count int, err error) {
+	var folders []*Folder
+	if err = DB.Where("ascription=?", userId).Find(&folders).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	return len(folders), nil
+}
 func CreateFolder(name string, parent_folder_id int64, ascription int64) error {
 	tx := DB.Begin()
 	if tx.Error != nil {
@@ -115,9 +125,9 @@ func GetFoldersByUserIdAndParentFolderId(userId int64, parent_folder_id int64) (
 	}
 	return result, nil
 }
-func GetFolderByNameAndParentFolderId(folderName string, parent_folder_id int64) (bool, error) {
+func GetFolderByNameAndParentFolderId(folderName string, parent_folder_id int64, user_id int64) (bool, error) {
 	var folder *Folder
-	if err := DB.Where("folder_name = ? And parent_folder_id = ?", folderName, parent_folder_id).First(&folder).Error; err != nil {
+	if err := DB.Where("folder_name = ? And parent_folder_id = ? And ascription = ? ", folderName, parent_folder_id, user_id).First(&folder).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return true, nil
 		}

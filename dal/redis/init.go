@@ -30,7 +30,18 @@ func init() {
 func SetKey(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
 	return client.Set(ctx, key, value, expiration).Err()
 }
+func DelKey(ctx context.Context, key string) error {
+	return client.Del(ctx, key).Err()
+}
 func GetKeyValue(ctx context.Context, key string) (string, error) {
 	value, err := client.Get(ctx, key).Result()
 	return value, err
+}
+func IsCaptchaExists(ctx context.Context, captcha string) (bool, error) {
+	// 查询 Redis 中是否已存在该验证码
+	exists, err := client.Exists(ctx, captcha).Result()
+	if err != nil {
+		return false, err
+	}
+	return exists > 0, nil
 }

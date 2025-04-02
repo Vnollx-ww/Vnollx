@@ -9,4 +9,6 @@ func init() {
 	InitFile(&fileConfig)
 	folderConfig := viper.Init("folder")
 	InitFolder(&folderConfig)
+	notificationConfig := viper.Init("notification")
+	InitNotification(&notificationConfig)
 }

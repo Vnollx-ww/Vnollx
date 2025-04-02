@@ -12,9 +12,20 @@ import (
 // Client is designed to provide IDL-compatible methods with call-option parameter for kitex framework.
 type Client interface {
 	UserLogin(ctx context.Context, req *user.UserLoginRequest, callOptions ...callopt.Option) (r *user.UserLoginResponse, err error)
+	UserLoginByCode(ctx context.Context, req *user.UserLoginByCodeRequest, callOptions ...callopt.Option) (r *user.UserLoginByCodeResponse, err error)
 	UserResgiter(ctx context.Context, req *user.UserRegisterRequest, callOptions ...callopt.Option) (r *user.UserRegisterResponse, err error)
 	GetUserInfo(ctx context.Context, req *user.GetUserInfoRequest, callOptions ...callopt.Option) (r *user.GetUserInfoResponse, err error)
 	UpdateUserInfo(ctx context.Context, req *user.UpdateUserInfoRequest, callOptions ...callopt.Option) (r *user.UpdateUserInfoResponse, err error)
+	UpdatePassword(ctx context.Context, req *user.UpdatePasswordRequest, callOptions ...callopt.Option) (r *user.UpdatePasswordResponse, err error)
+	GenerateCaptcha(ctx context.Context, req *user.GenerateCaptchaRequest, callOptions ...callopt.Option) (r *user.GenerateCaptchaResponse, err error)
+	AddFriend(ctx context.Context, req *user.AddFriendRequest, callOptions ...callopt.Option) (r *user.AddFriendResponse, err error)
+	DeleteFriend(ctx context.Context, req *user.DeleteFriendRequest, callOptions ...callopt.Option) (r *user.DeleteFriendResponse, err error)
+	SendMessage(ctx context.Context, req *user.SendMessageRequest, callOptions ...callopt.Option) (r *user.SendMessageResponse, err error)
+	GetFriendList(ctx context.Context, req *user.GetFriendListRequest, callOptions ...callopt.Option) (r *user.GetFriendListResponse, err error)
+	GetMessageList(ctx context.Context, req *user.GetMessageListRequest, callOptions ...callopt.Option) (r *user.GetMessageListResponse, err error)
+	DeleteMessage(ctx context.Context, req *user.DeleteMessageRequest, callOptions ...callopt.Option) (r *user.DeleteMessageResponse, err error)
+	GetUsersByName(ctx context.Context, req *user.GetUsersByNameRequest, callOptions ...callopt.Option) (r *user.GetUsersByNameResponse, err error)
+	IsFriend(ctx context.Context, req *user.IsFriendRequest, callOptions ...callopt.Option) (r *user.IsFriendResponse, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -51,6 +62,11 @@ func (p *kUserServiceClient) UserLogin(ctx context.Context, req *user.UserLoginR
 	return p.kClient.UserLogin(ctx, req)
 }
 
+func (p *kUserServiceClient) UserLoginByCode(ctx context.Context, req *user.UserLoginByCodeRequest, callOptions ...callopt.Option) (r *user.UserLoginByCodeResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.UserLoginByCode(ctx, req)
+}
+
 func (p *kUserServiceClient) UserResgiter(ctx context.Context, req *user.UserRegisterRequest, callOptions ...callopt.Option) (r *user.UserRegisterResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.UserResgiter(ctx, req)
@@ -64,4 +80,54 @@ func (p *kUserServiceClient) GetUserInfo(ctx context.Context, req *user.GetUserI
 func (p *kUserServiceClient) UpdateUserInfo(ctx context.Context, req *user.UpdateUserInfoRequest, callOptions ...callopt.Option) (r *user.UpdateUserInfoResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.UpdateUserInfo(ctx, req)
+}
+
+func (p *kUserServiceClient) UpdatePassword(ctx context.Context, req *user.UpdatePasswordRequest, callOptions ...callopt.Option) (r *user.UpdatePasswordResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.UpdatePassword(ctx, req)
+}
+
+func (p *kUserServiceClient) GenerateCaptcha(ctx context.Context, req *user.GenerateCaptchaRequest, callOptions ...callopt.Option) (r *user.GenerateCaptchaResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GenerateCaptcha(ctx, req)
+}
+
+func (p *kUserServiceClient) AddFriend(ctx context.Context, req *user.AddFriendRequest, callOptions ...callopt.Option) (r *user.AddFriendResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.AddFriend(ctx, req)
+}
+
+func (p *kUserServiceClient) DeleteFriend(ctx context.Context, req *user.DeleteFriendRequest, callOptions ...callopt.Option) (r *user.DeleteFriendResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.DeleteFriend(ctx, req)
+}
+
+func (p *kUserServiceClient) SendMessage(ctx context.Context, req *user.SendMessageRequest, callOptions ...callopt.Option) (r *user.SendMessageResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.SendMessage(ctx, req)
+}
+
+func (p *kUserServiceClient) GetFriendList(ctx context.Context, req *user.GetFriendListRequest, callOptions ...callopt.Option) (r *user.GetFriendListResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetFriendList(ctx, req)
+}
+
+func (p *kUserServiceClient) GetMessageList(ctx context.Context, req *user.GetMessageListRequest, callOptions ...callopt.Option) (r *user.GetMessageListResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetMessageList(ctx, req)
+}
+
+func (p *kUserServiceClient) DeleteMessage(ctx context.Context, req *user.DeleteMessageRequest, callOptions ...callopt.Option) (r *user.DeleteMessageResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.DeleteMessage(ctx, req)
+}
+
+func (p *kUserServiceClient) GetUsersByName(ctx context.Context, req *user.GetUsersByNameRequest, callOptions ...callopt.Option) (r *user.GetUsersByNameResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetUsersByName(ctx, req)
+}
+
+func (p *kUserServiceClient) IsFriend(ctx context.Context, req *user.IsFriendRequest, callOptions ...callopt.Option) (r *user.IsFriendResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.IsFriend(ctx, req)
 }

@@ -32,6 +32,76 @@ var extToNumber map[string]int = map[string]int{
 	".zip":  8,
 }
 
+func GetVideosByUserId(name string, userId int64, option int) ([]*File, int, error) {
+	var files []*File
+	if err := DB.Where("file_name LIKE ? AND ascription= ? AND postfix= ?", "%"+name+"%", userId, "mp4").Find(&files).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, 0, nil
+		}
+		return nil, 0, err
+	}
+	if option == 1 {
+		return files, 0, nil
+	} else {
+		return nil, len(files), nil
+	}
+}
+func GetPicturesByUserId(name string, userId int64, option int) ([]*File, int, error) {
+	var files []*File
+	if err := DB.Where("file_name LIKE ? AND ascription = ? AND postfix IN (?)", "%"+name+"%", userId, []string{"jpg", "png"}).Find(&files).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, 0, nil
+		}
+		return nil, 0, err
+	}
+	if option == 1 {
+		return files, 0, nil
+	} else {
+		return nil, len(files), nil
+	}
+}
+func GetDocumentsByUserId(name string, userId int64, option int) ([]*File, int, error) {
+	var files []*File
+	if err := DB.Where("file_name LIKE ? AND ascription = ? AND postfix IN (?)", "%"+name+"%", userId, []string{"docx", "txt", "pdf"}).Find(&files).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, 0, nil
+		}
+		return nil, 0, err
+	}
+	if option == 1 {
+		return files, 0, nil
+	} else {
+		return nil, len(files), nil
+	}
+}
+func GetMusicsByUserId(name string, userId int64, option int) ([]*File, int, error) {
+	var files []*File
+	if err := DB.Where("file_name LIKE ? AND ascription = ? AND postfix = ?", "%"+name+"%", userId, "mp3").Find(&files).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, 0, nil
+		}
+		return nil, 0, err
+	}
+	if option == 1 {
+		return files, 0, nil
+	} else {
+		return nil, len(files), nil
+	}
+}
+func GetOthersByUserId(name string, userId int64, option int) ([]*File, int, error) {
+	var files []*File
+	if err := DB.Where("file_name LIKE ? AND ascription = ? AND postfix NOT IN ?", "%"+name+"%", userId, []string{"docx", "txt", "pdf", "mp4", "mp3", "jpg", "png"}).Find(&files).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, 0, nil
+		}
+		return nil, 0, err
+	}
+	if option == 1 {
+		return files, 0, nil
+	} else {
+		return nil, len(files), nil
+	}
+}
 func UploadFile(name string, source string, parent_folder_id int64, size int64, postfix string, ascription int64, usr *User) (int64, error) {
 	tx := DB.Begin()
 	if tx.Error != nil {
@@ -126,6 +196,16 @@ func UpdateFileInfo(file *File, name string) error {
 	err := DB.Save(file).Error
 	return err
 }
+func GetFilesByUserId(name string, userId int64) ([]*File, error) {
+	var files []*File
+	if err := DB.Where("file_name LIKE ? AND ascription=?", "%"+name+"%", userId).Find(&files).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return files, nil
+}
 func GetFilesByUserIdAndParentFolderId(userId int64, parent_folder_id int64) ([]*File, error) {
 	var result []*File
 	if err := DB.Where("ascription = ? AND parent_folder_id = ?", userId, parent_folder_id).Find(&result).Error; err != nil {
@@ -133,13 +213,23 @@ func GetFilesByUserIdAndParentFolderId(userId int64, parent_folder_id int64) ([]
 	}
 	return result, nil
 }
-func GetFileByNameAndParentFolderId(fileName string, parent_folder_id int64) (bool, error) {
+func GetFileByNameAndParentFolderId(fileName string, parent_folder_id int64, user_id int64) (bool, error) {
 	var file *File
-	if err := DB.Where("file_name = ? And parent_folder_id = ?", fileName, parent_folder_id).First(&file).Error; err != nil {
+	if err := DB.Where("file_name = ? And parent_folder_id = ? AND ascription=?", fileName, parent_folder_id, user_id).First(&file).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return true, nil
 		}
 		return false, err
 	}
 	return false, nil
+}
+func GetFilesByNameAndUserId(fileName string, user_id int64) ([]*File, error) {
+	var result []*File
+	if err := DB.Where("file_name LIKE ? AND ascription = ?", "%"+fileName+"%", user_id).Find(&result).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return result, nil
 }

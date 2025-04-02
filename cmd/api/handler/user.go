@@ -2,14 +2,11 @@ package handler
 
 import (
 	"Vnollx/cmd/api/rpc"
-	"Vnollx/dal/redis"
 	"Vnollx/kitex_gen/user"
-	captcha2 "Vnollx/pkg/captcha"
-	"context"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net/http"
-	"time"
+	"strconv"
 )
 
 func Login(ctx *gin.Context) {
@@ -34,7 +31,7 @@ func Register(ctx *gin.Context) {
 		Name     string
 		Phone    string
 		Password string
-		Avatar   string
+		Postfix  string
 	}
 	if err := ctx.ShouldBind(&reqbody); err != nil {
 		logger.Error("前后端数据绑定错误", zap.Error(err))
@@ -45,7 +42,7 @@ func Register(ctx *gin.Context) {
 		Name:     reqbody.Name,
 		Phone:    reqbody.Phone,
 		Password: reqbody.Password,
-		Avatar:   reqbody.Avatar,
+		Postfix:  reqbody.Postfix,
 	}
 	resp, _ := rpc.Register(ctx, req)
 	ctx.JSON(http.StatusOK, resp)
@@ -59,10 +56,8 @@ func GetUserinfo(ctx *gin.Context) {
 }
 func UpdateUserInfo(ctx *gin.Context) {
 	var reqbody struct {
-		Name     string
-		Phone    string
-		Password string
-		Avatar   string
+		Name  string
+		Phone string
 	}
 	if err := ctx.ShouldBind(&reqbody); err != nil {
 		logger.Error("前后端数据绑定错误", zap.Error(err))
@@ -70,20 +65,186 @@ func UpdateUserInfo(ctx *gin.Context) {
 		return
 	}
 	req := &user.UpdateUserInfoRequest{
-		UserId:   ctx.Value("uid").(int64),
-		Name:     reqbody.Name,
-		Phone:    reqbody.Phone,
-		Avatar:   reqbody.Avatar,
-		Password: reqbody.Password,
+		UserId: ctx.Value("uid").(int64),
+		Name:   reqbody.Name,
+		Phone:  reqbody.Phone,
 	}
 	resp, _ := rpc.UpdateUserInfo(ctx, req)
 	ctx.JSON(http.StatusOK, resp)
 }
-func GetCaptcha(ctx *gin.Context) {
-	captcha := captcha2.GenerateCaptcha(ctx)
-	key := "captcha:" + ctx.ClientIP()
-	err := redis.SetKey(context.Background(), key, captcha, 2*time.Minute)
-	if err != nil {
-		logger.Error("验证码存入redis失败", zap.Error(err))
+func UpdatePassword(ctx *gin.Context) {
+	var reqbody struct {
+		OldPassword string
+		NewPassword string
 	}
+	if err := ctx.ShouldBind(&reqbody); err != nil {
+		logger.Error("前后端数据绑定错误", zap.Error(err))
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	req := &user.UpdatePasswordRequest{
+		OldPassword:  reqbody.OldPassword,
+		NewPassword_: reqbody.NewPassword,
+		UserId:       ctx.Value("uid").(int64),
+	}
+	resp, _ := rpc.UpdatePassword(ctx, req)
+	ctx.JSON(http.StatusOK, resp)
+}
+func UserLoginByCode(ctx *gin.Context) {
+	var reqbody struct {
+		Captcha string
+		Phone   string
+	}
+	if err := ctx.ShouldBind(&reqbody); err != nil {
+		logger.Error("前后端数据绑定错误", zap.Error(err))
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	req := &user.UserLoginByCodeRequest{
+		Captcha: reqbody.Captcha,
+		Phone:   reqbody.Phone,
+	}
+	resp, _ := rpc.LoginByCode(ctx, req)
+	ctx.JSON(http.StatusOK, resp)
+}
+func GenerateCaptcha(ctx *gin.Context) {
+	var reqbody struct {
+		Phone string
+	}
+	if err := ctx.ShouldBind(&reqbody); err != nil {
+		logger.Error("前后端数据绑定错误", zap.Error(err))
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	req := &user.GenerateCaptchaRequest{
+		Phone: reqbody.Phone,
+	}
+	resp, _ := rpc.GenerateCaptcha(ctx, req)
+	ctx.JSON(http.StatusOK, resp)
+}
+func AddFriend(ctx *gin.Context) {
+	var reqbody struct {
+		ToUserId string
+	}
+	if err := ctx.ShouldBind(&reqbody); err != nil {
+		logger.Error("前后端数据绑定错误", zap.Error(err))
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	touserid, _ := strconv.ParseInt(reqbody.ToUserId, 10, 64)
+	req := &user.AddFriendRequest{
+		UserId:   ctx.Value("uid").(int64),
+		TouserId: touserid,
+	}
+	resp, _ := rpc.AddFriend(ctx, req)
+	ctx.JSON(http.StatusOK, resp)
+}
+func DeleteFriend(ctx *gin.Context) {
+	var reqbody struct {
+		ToUserId string
+	}
+	if err := ctx.ShouldBind(&reqbody); err != nil {
+		logger.Error("前后端数据绑定错误", zap.Error(err))
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	touserid, _ := strconv.ParseInt(reqbody.ToUserId, 10, 64)
+	req := &user.DeleteFriendRequest{
+		UserId:   ctx.Value("uid").(int64),
+		TouserId: touserid,
+	}
+	resp, _ := rpc.DeleteFriend(ctx, req)
+	ctx.JSON(http.StatusOK, resp)
+}
+func SendMessage(ctx *gin.Context) {
+	var reqbody struct {
+		ToUserId string
+		Content  string
+	}
+	if err := ctx.ShouldBind(&reqbody); err != nil {
+		logger.Error("前后端数据绑定错误", zap.Error(err))
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	touserid, _ := strconv.ParseInt(reqbody.ToUserId, 10, 64)
+	req := &user.SendMessageRequest{
+		UserId:   ctx.Value("uid").(int64),
+		TouserId: touserid,
+		Content:  reqbody.Content,
+	}
+	resp, _ := rpc.SendMessage(ctx, req)
+	ctx.JSON(http.StatusOK, resp)
+}
+func GetFriendList(ctx *gin.Context) {
+	req := &user.GetFriendListRequest{
+		UserId: ctx.Value("uid").(int64),
+	}
+	resp, _ := rpc.GetFriendList(ctx, req)
+	ctx.JSON(http.StatusOK, resp)
+}
+func GetMessageList(ctx *gin.Context) {
+	var reqbody struct {
+		ToUserId string
+	}
+	if err := ctx.ShouldBind(&reqbody); err != nil {
+		logger.Error("前后端数据绑定错误", zap.Error(err))
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	touserid, _ := strconv.ParseInt(reqbody.ToUserId, 10, 64)
+	req := &user.GetMessageListRequest{
+		UserId:   ctx.Value("uid").(int64),
+		TouserId: touserid,
+	}
+	resp, _ := rpc.GetMessageList(ctx, req)
+	ctx.JSON(http.StatusOK, resp)
+}
+func DeleteMessage(ctx *gin.Context) {
+	var reqbody struct {
+		ToUserId string
+	}
+	if err := ctx.ShouldBind(&reqbody); err != nil {
+		logger.Error("前后端数据绑定错误", zap.Error(err))
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	touserid, _ := strconv.ParseInt(reqbody.ToUserId, 10, 64)
+	req := &user.DeleteMessageRequest{
+		UserId:   ctx.Value("uid").(int64),
+		TouserId: touserid,
+	}
+	resp, _ := rpc.DeleteMessage(ctx, req)
+	ctx.JSON(http.StatusOK, resp)
+}
+func GetUsersByName(ctx *gin.Context) {
+	var reqbody struct {
+		Name string
+	}
+	if err := ctx.ShouldBind(&reqbody); err != nil {
+		logger.Error("前后端数据绑定错误", zap.Error(err))
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	req := &user.GetUsersByNameRequest{
+		Name: reqbody.Name,
+	}
+	resp, _ := rpc.GetUsersByName(ctx, req)
+	ctx.JSON(http.StatusOK, resp)
+}
+func IsFriend(ctx *gin.Context) {
+	var reqbody struct {
+		ToUserId string
+	}
+	if err := ctx.ShouldBind(&reqbody); err != nil {
+		logger.Error("前后端数据绑定错误", zap.Error(err))
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	touserid, _ := strconv.ParseInt(reqbody.ToUserId, 10, 64)
+	req := &user.IsFriendRequest{
+		UserId:   ctx.Value("uid").(int64),
+		TouserId: touserid,
+	}
+	resp, _ := rpc.IsFriend(ctx, req)
+	ctx.JSON(http.StatusOK, resp)
 }

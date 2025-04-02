@@ -4,420 +4,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <title>风间网盘</title>
+    <title>Vnollx 网盘</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #6C5CE7;
-            --secondary-color: #A8A4FF;
-            --accent-color: #FF7675;
-            --background: #F8F9FF;
-            --text-dark: #2D3436;
-            --text-light: #636E72;
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --glass: rgba(255, 255, 255, 0.1);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'PingFang SC', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
 
         body {
-            background: var(--background);
-            color: var(--text-dark);
-        }
-
-        .container {
-            display: flex;
+            background: linear-gradient(145deg, #f8fbff 0%, #f0f7ff 100%);
+            color: #2d3748;
             min-height: 100vh;
-        }
-
-        /* 侧边栏优化 */
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
-            padding: 30px 20px;
-            box-shadow: 4px 0 15px rgba(108, 92, 231, 0.08);
-            position: relative;
-            z-index: 2;
-            flex-shrink: 0;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            margin-bottom: 40px;
-            padding: 15px;
-            background: rgba(108, 92, 231, 0.05);
-            border-radius: 12px;
-        }
-
-        .user-info img {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            margin-right: 15px;
-            border: 2px solid var(--primary-color);
-        }
-
-        .user-info p {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--primary-color);
-        }
-
-        nav ul li {
-            margin: 8px 0;
-            transition: all 0.2s;
-        }
-
-        nav ul li a {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            border-radius: 8px;
-            color: var(--text-light);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        nav ul li a span {
-            margin-right: 15px;
-            font-size: 20px;
-            width: 24px;
-            text-align: center;
-            color: var(--primary-color);
-        }
-
-        nav ul li a:hover {
-            background: rgba(108, 92, 231, 0.08);
-            transform: translateX(4px);
-        }
-
-        .exit-btn {
-            position: absolute;
-            bottom: 30px;
-            width: calc(100% - 40px);
-            padding: 14px;
-            background: linear-gradient(135deg, var(--accent-color) 0%, #FF6384 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 12px rgba(255, 118, 117, 0.25);
-        }
-
-        .exit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(255, 118, 117, 0.35);
-        }
-
-        /* 主内容区优化 */
-        .main-content {
-            flex: 1;
-            min-width: 0;
-            padding: 0 30px;
+            overflow-x: hidden;
         }
 
         .header {
-            background: var(--primary-color);
-            padding: 18px 30px;
-            margin: 20px 0;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.2);
-            display: flex;
-            align-items: center;
-            position: relative;
-            z-index: 1;
+            padding: 1.5rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
 
-        .menu-icon {
-            font-size: 24px;
-            color: rgba(255, 255, 255, 0.9);
-            margin-right: 20px;
-            cursor: pointer;
+        .header:hover {
+            box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.2);
         }
 
-        .header h2 {
-            flex-grow: 1;
-            font-weight: 600;
-            color: white;
-            letter-spacing: 0.5px;
+        .main-content {
+            margin-top: 120px;
+            padding: 2rem;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards;
         }
 
-        .user-greeting {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.9);
+        .hero {
+            text-align: center;
+            margin-bottom: 4rem;
         }
 
-        /* 仪表盘优化 */
-        .dashboard {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(108, 92, 231, 0.08);
-            padding: 30px;
-            margin-bottom: 30px;
-        }
-
-        /* 统计卡片 */
-        .stat-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-item {
-            padding: 20px;
-            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
-            border-radius: 12px;
-            border: 1px solid rgba(108, 92, 231, 0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            height: 120px;
-        }
-
-        .stat-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.1);
-        }
-
-        .stat-item .icon {
-            font-size: 32px;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, #6366f1 30%, #a5b4fc 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            flex-shrink: 0;
+            animation: slideUp 0.8s ease;
         }
 
-        .stat-item p:first-of-type {
-            color: var(--text-light);
-            font-size: 14px;
-            margin-bottom: 6px;
+        .hero p.desc {
+            color: #4a5568;
         }
 
-        .stat-item p:last-of-type {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
-
-        /* 图表区域 */
-        .chart-container {
+        .features {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            height: 400px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
         }
 
-        .chart-item {
-            background: white;
-            border-radius: 12px;
-            border: 1px solid rgba(108, 92, 231, 0.1);
-            padding: 24px;
-            height: 100%;
+        .feature {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            transform: translateY(0);
         }
 
-        .chart-item h4 {
-            font-size: 16px;
-            color: var(--text-dark);
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid rgba(108, 92, 231, 0.1);
+        .feature:hover {
+            transform: translateY(-10px);
+            background: rgba(99, 102, 241, 0.2);
         }
 
-        .chart-placeholder {
-            height: calc(100% - 40px);
-            background: radial-gradient(circle at center,
-            rgba(108, 92, 231, 0.05) 0%,
-            rgba(108, 92, 231, 0) 70%);
-            border-radius: 8px;
-            display: flex;
+        .feature i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #818cf8, #c4b5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn {
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            color: var(--text-light);
-            font-size: 14px;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 2rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
-        /* 响应式设计 */
-        @media (max-width: 1200px) {
-            .stat-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+        }
 
-            .chart-container {
-                height: auto;
-                grid-template-columns: 1fr;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
         @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                padding: 20px;
-            }
-
-            .main-content {
-                padding: 0 20px;
-            }
-
-            .stat-container {
+            .features {
                 grid-template-columns: 1fr;
             }
 
-            .stat-item {
-                height: auto;
-                flex-direction: column;
-                text-align: center;
+            .hero h1 {
+                font-size: 2.5rem;
             }
+        }
 
-            .exit-btn {
-                position: static;
-                margin-top: 30px;
-                width: 100%;
+        .particles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(102, 126, 234, 0.15);
+            border-radius: 50%;
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            from {
+                transform: translateY(0) rotate(0deg);
             }
-
-            .chart-item {
-                height: 300px;
+            to {
+                transform: translateY(-100vh) rotate(360deg);
             }
         }
     </style>
 </head>
 
 <body>
-<div class="container">
-    <div class="sidebar">
-        <div class="user-info">
-            <img id="avatarimg"  alt="头像">
-            <p>普通用户</p>
-        </div>
-        <nav>
-            <ul>
-                <li><a href="#"><span></span>使用情况</a></li>
-                <li><a href="#"><span></span>全部文件</a></li>
-                <li><a href="#"><span></span>上传文件</a></li>
-                <li><a href="#"><span></span>分类文件</a></li>
-                <li><a href="#"><span></span>帮助中心</a></li>
-            </ul>
-        </nav>
-        <button id="exit" class="exit-btn">退出登录</button>
-    </div>
+<div class="particles"></div>
 
-    <div class="main-content">
-        <div class="header">
-            <span class="menu-icon">≡</span>
-            <h2>使用情况</h2>
-            <div class="user-greeting">你好，用户</div>
-        </div>
+<header class="header">
+    <nav>
+        <h2>Vnollx</h2>
+    </nav>
+</header>
 
-        <div class="dashboard">
-            <div class="stat-container">
-                <div class="stat-item">
-                    <span class="icon">📁</span>
-                    <div>
-                        <p>文件夹数量</p>
-                        <p>2</p>
-                    </div>
-                </div>
-                <div class="stat-item">
-                    <span class="icon">📄</span>
-                    <div>
-                        <p>文件数量</p>
-                        <p>1</p>
-                    </div>
-                </div>
-                <div class="stat-item">
-                    <span class="icon">💾</span>
-                    <div>
-                        <p>已用容量</p>
-                        <p>15.2GB</p>
-                        <p style="font-size: 14px; color: var(--text-light);">剩余容量: 84.8GB</p>
-                    </div>
-                </div>
-                <div class="stat-item">
-                    <span class="icon">⏱️</span>
-                    <div>
-                        <p>最近活动</p>
-                        <p>2小时前</p>
-                    </div>
-                </div>
-            </div>
+<main class="main-content">
+    <section class="hero">
+        <h1>新一代智能云存储</h1>
+        <p class="desc">安全、快速、无限可能</p>
+        <a href="login" class="btn">
+            <i class="fas fa-rocket mr-2"></i>
+            立即体验
+        </a>
+    </section>
 
-            <div class="chart-container">
-                <div class="chart-item">
-                    <h4>来自系统通知</h4>
-                    <p style="font-size: 14px; color: var(--text-light);">Vnollx网盘是由个人开发者推出的在线存储服务。用户可以轻松将自己的文件上传到网盘上，并可跨终端随时随地查看和分享。注重用户的隐私，具有安全、简约、高效、不限速的特点。</p>
-                    <div class="chart-placeholder">这里显示系统通知内容</div>
-                </div>
-                <div class="chart-item">
-                    <h4>文件类型统计</h4>
-                    <div class="chart-placeholder">类型分布图表</div>
-                </div>
-            </div>
+    <section class="features">
+        <div class="feature">
+            <i class="fas fa-database"></i>
+            <h3>大量存储空间</h3>
+            <p>GB 级存储容量，满足所有需求</p>
+            <div class="wave-effect"></div>
         </div>
-    </div>
-</div>
+        <div class="feature">
+            <i class="fas fa-shield-alt"></i>
+            <h3>军事级加密</h3>
+            <p>端到端加密保护，数据绝对安全</p>
+        </div>
+        <div class="feature">
+            <i class="fas fa-sync-alt"></i>
+            <h3>实时多端同步</h3>
+            <p>跨平台即时同步，随时随地访问</p>
+        </div>
+    </section>
+</main>
+
 <script>
-    document.getElementById("exit").addEventListener('click', function() {
-        Swal.fire({
-            title: '确认退出？',
-            text: "您确定要退出当前账户吗？",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#667eea',
-            cancelButtonColor: '#718096',
-            confirmButtonText: '退出',
-            cancelButtonText: '取消',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = "login";
-            }
-        });
-    });
-    async function fetchUserInfo() {
-        var token = localStorage.getItem('token');
-        if (!token) {
-            console.error('未找到token');
-            return;
-        }
-        try {
-            const formData = new FormData();
-            formData.append('token', token);
+    const particlesContainer = document.querySelector('.particles');
+    const particleCount = 50;
 
-            const response = await fetch('/user/userinfo', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({token})
-            });
-
-            if (!response.ok) {
-                throw new Error(`请求失败，状态码: ${response.status}`);
-            }
-
-            const resp = await response.json();
-            const userInfo = resp.userinfo;
-            if (userInfo && userInfo.name) {
-                const greetingElement = document.querySelector('.user-greeting');
-                greetingElement.textContent = `你好，${userInfo.name}`;
-                document.getElementById("avatarimg").src=userInfo.avatar;
-            }
-        } catch (error) {
-            console.error('获取用户信息时出错:', error);
-        }
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        const size = Math.random() * 10 + 5;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.left = `${Math.random() * 100}vw`;
+        particle.style.top = `${Math.random() * 100}vh`;
+        const duration = Math.random() * 10 + 5;
+        particle.style.animationDuration = `${duration}s`;
+        particlesContainer.appendChild(particle);
     }
-
-    window.addEventListener('load', fetchUserInfo);
 </script>
 </body>
 

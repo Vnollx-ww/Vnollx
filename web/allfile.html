@@ -378,6 +378,27 @@
             background-color: #6366f1;
             transition: width 0.3s ease;
         }
+        /* 添加分享模态框样式 */
+        .swal2-confirm {
+            background-color: #6366f1 !important;
+            color: white !important;
+        }
+
+        .swal2-confirm:hover {
+            background-color: #4f46e5 !important;
+        }
+
+        .swal2-popup {
+            max-width: 500px !important;
+        }
+
+        .swal2-code {
+            font-family: 'Courier New', monospace;
+            background-color: #f9fafb;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
     </style>
 </head>
 
@@ -521,10 +542,8 @@
                 fetch('/file/enquerys', { method: 'POST', body: formData }),
                 fetch('/folder/enquerys', { method: 'POST', body: formData })
             ]);
-
             const fileData = await fileResp.json();
             const folderData = await folderResp.json();
-
             const allItems = [
                 ...(fileData.base?.code === 200 ? fileData.files.map(f => ({ ...f, type: 'file' })) : []),
                 ...(folderData.base?.code === 200 ? folderData.folders.map(f => ({ ...f, type: 'folder' })) : [])
@@ -825,6 +844,9 @@
                     const fileId = currentItem.dataset.fileId;
                     const postfix = currentItem.children[2].textContent;
                     downloadFile(fileId, postfix);
+                }else if (action === 'share'&&currentItem.dataset.fileId) {
+                    const fileId = currentItem.dataset.fileId;
+                    shareFile(fileId);
                 }
                 contextMenu.style.display = 'none';
             }
@@ -985,7 +1007,7 @@
             accessKeyId: 'vnollxvnollx',
             secretAccessKey: 'vnollxvnollxvnollx',
             region: 'us-east-1',
-            endpoint: 'http://localhost:9000',
+            endpoint: 'http://106.54.223.38:9000',
             s3ForcePathStyle: true,
             signatureVersion: 'v4'
         });
@@ -1012,7 +1034,7 @@
             accessKeyId: 'vnollxvnollx',
             secretAccessKey: 'vnollxvnollxvnollx',
             region: 'us-east-1',
-            endpoint: 'http://localhost:9000',
+            endpoint: 'http://106.54.223.38:9000',
             s3ForcePathStyle: true,
             signatureVersion: 'v4'
         });
@@ -1052,7 +1074,7 @@
             accessKeyId: 'vnollxvnollx',
             secretAccessKey: 'vnollxvnollxvnollx',
             region: 'us-east-1',
-            endpoint: 'http://localhost:9000',
+            endpoint: 'http://106.54.223.38:9000',
             s3ForcePathStyle: true,
             signatureVersion: 'v4'
         });
@@ -1172,6 +1194,79 @@
         }
     `;
     document.head.appendChild(style);
+    async function shareFile(fileId) {
+        try {
+            const token = localStorage.getItem('token');
+            const formData = new FormData();
+            formData.append('Token', token);
+            formData.append('FileId', fileId);
+
+            const response = await fetch('/file/createshare', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.base.code === 200) {
+                showShareCode(data.code);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: '分享失败',
+                    text: data.base.msg
+                });
+            }
+        } catch (error) {
+            console.error('分享请求失败:', error);
+            Swal.fire({
+                icon: 'error',
+                title: '分享失败，请检查网络连接',
+                text: error
+            });
+        }
+    }
+
+    // 显示分享码的SweetAlert
+    function showShareCode(shareCode) {
+        Swal.fire({
+            title: '文件分享码',
+            html: `
+            <div style="margin: 1rem 0;">
+                <code>${shareCode}</code>
+            </div>
+            <div style="color: #6b7280;">
+                该分享码的有效期为1天（24小时）
+            </div>
+        `,
+            showCancelButton: false,
+            showCloseButton: true,
+            confirmButtonText: '复制',
+            customClass: {
+                confirmButton: 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
+            },
+            didOpen: () => {
+                Swal.getConfirmButton().addEventListener('click', () => {
+                    navigator.clipboard.writeText(shareCode)
+                        .then(() => {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '已复制到剪贴板',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        })
+                        .catch(err => {
+                            console.error('复制失败:', err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: '复制失败',
+                                text: '请手动复制分享码'
+                            });
+                        });
+                });
+            }
+        });
+    }
 </script>
 </body>
 </html>

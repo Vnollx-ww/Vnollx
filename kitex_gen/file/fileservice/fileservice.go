@@ -19,11 +19,20 @@ func NewServiceInfo() *kitex.ServiceInfo {
 	serviceName := "FileService"
 	handlerType := (*file.FileService)(nil)
 	methods := map[string]kitex.MethodInfo{
-		"UploadFile":     kitex.NewMethodInfo(uploadFileHandler, newFileServiceUploadFileArgs, newFileServiceUploadFileResult, false),
-		"DeleteFile":     kitex.NewMethodInfo(deleteFileHandler, newFileServiceDeleteFileArgs, newFileServiceDeleteFileResult, false),
-		"UpdateFileInfo": kitex.NewMethodInfo(updateFileInfoHandler, newFileServiceUpdateFileInfoArgs, newFileServiceUpdateFileInfoResult, false),
-		"GetFileInfo":    kitex.NewMethodInfo(getFileInfoHandler, newFileServiceGetFileInfoArgs, newFileServiceGetFileInfoResult, false),
-		"GetFilesInfo":   kitex.NewMethodInfo(getFilesInfoHandler, newFileServiceGetFilesInfoArgs, newFileServiceGetFilesInfoResult, false),
+		"UploadFile":       kitex.NewMethodInfo(uploadFileHandler, newFileServiceUploadFileArgs, newFileServiceUploadFileResult, false),
+		"DeleteFile":       kitex.NewMethodInfo(deleteFileHandler, newFileServiceDeleteFileArgs, newFileServiceDeleteFileResult, false),
+		"UpdateFileInfo":   kitex.NewMethodInfo(updateFileInfoHandler, newFileServiceUpdateFileInfoArgs, newFileServiceUpdateFileInfoResult, false),
+		"GetFileInfo":      kitex.NewMethodInfo(getFileInfoHandler, newFileServiceGetFileInfoArgs, newFileServiceGetFileInfoResult, false),
+		"GetFilesInfo":     kitex.NewMethodInfo(getFilesInfoHandler, newFileServiceGetFilesInfoArgs, newFileServiceGetFilesInfoResult, false),
+		"GetAllFiles":      kitex.NewMethodInfo(getAllFilesHandler, newFileServiceGetAllFilesArgs, newFileServiceGetAllFilesResult, false),
+		"GetVideoFiles":    kitex.NewMethodInfo(getVideoFilesHandler, newFileServiceGetVideoFilesArgs, newFileServiceGetVideoFilesResult, false),
+		"GetMusicFiles":    kitex.NewMethodInfo(getMusicFilesHandler, newFileServiceGetMusicFilesArgs, newFileServiceGetMusicFilesResult, false),
+		"GetPictureFiles":  kitex.NewMethodInfo(getPictureFilesHandler, newFileServiceGetPictureFilesArgs, newFileServiceGetPictureFilesResult, false),
+		"GetDocumentFiles": kitex.NewMethodInfo(getDocumentFilesHandler, newFileServiceGetDocumentFilesArgs, newFileServiceGetDocumentFilesResult, false),
+		"GetOtherFiles":    kitex.NewMethodInfo(getOtherFilesHandler, newFileServiceGetOtherFilesArgs, newFileServiceGetOtherFilesResult, false),
+		"GetFilesByName":   kitex.NewMethodInfo(getFilesByNameHandler, newFileServiceGetFilesByNameArgs, newFileServiceGetFilesByNameResult, false),
+		"CreateShare":      kitex.NewMethodInfo(createShareHandler, newFileServiceCreateShareArgs, newFileServiceCreateShareResult, false),
+		"GetFileByCode":    kitex.NewMethodInfo(getFileByCodeHandler, newFileServiceGetFileByCodeArgs, newFileServiceGetFileByCodeResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName":     "file",
@@ -130,6 +139,168 @@ func newFileServiceGetFilesInfoResult() interface{} {
 	return file.NewFileServiceGetFilesInfoResult()
 }
 
+func getAllFilesHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*file.FileServiceGetAllFilesArgs)
+	realResult := result.(*file.FileServiceGetAllFilesResult)
+	success, err := handler.(file.FileService).GetAllFiles(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newFileServiceGetAllFilesArgs() interface{} {
+	return file.NewFileServiceGetAllFilesArgs()
+}
+
+func newFileServiceGetAllFilesResult() interface{} {
+	return file.NewFileServiceGetAllFilesResult()
+}
+
+func getVideoFilesHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*file.FileServiceGetVideoFilesArgs)
+	realResult := result.(*file.FileServiceGetVideoFilesResult)
+	success, err := handler.(file.FileService).GetVideoFiles(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newFileServiceGetVideoFilesArgs() interface{} {
+	return file.NewFileServiceGetVideoFilesArgs()
+}
+
+func newFileServiceGetVideoFilesResult() interface{} {
+	return file.NewFileServiceGetVideoFilesResult()
+}
+
+func getMusicFilesHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*file.FileServiceGetMusicFilesArgs)
+	realResult := result.(*file.FileServiceGetMusicFilesResult)
+	success, err := handler.(file.FileService).GetMusicFiles(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newFileServiceGetMusicFilesArgs() interface{} {
+	return file.NewFileServiceGetMusicFilesArgs()
+}
+
+func newFileServiceGetMusicFilesResult() interface{} {
+	return file.NewFileServiceGetMusicFilesResult()
+}
+
+func getPictureFilesHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*file.FileServiceGetPictureFilesArgs)
+	realResult := result.(*file.FileServiceGetPictureFilesResult)
+	success, err := handler.(file.FileService).GetPictureFiles(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newFileServiceGetPictureFilesArgs() interface{} {
+	return file.NewFileServiceGetPictureFilesArgs()
+}
+
+func newFileServiceGetPictureFilesResult() interface{} {
+	return file.NewFileServiceGetPictureFilesResult()
+}
+
+func getDocumentFilesHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*file.FileServiceGetDocumentFilesArgs)
+	realResult := result.(*file.FileServiceGetDocumentFilesResult)
+	success, err := handler.(file.FileService).GetDocumentFiles(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newFileServiceGetDocumentFilesArgs() interface{} {
+	return file.NewFileServiceGetDocumentFilesArgs()
+}
+
+func newFileServiceGetDocumentFilesResult() interface{} {
+	return file.NewFileServiceGetDocumentFilesResult()
+}
+
+func getOtherFilesHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*file.FileServiceGetOtherFilesArgs)
+	realResult := result.(*file.FileServiceGetOtherFilesResult)
+	success, err := handler.(file.FileService).GetOtherFiles(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newFileServiceGetOtherFilesArgs() interface{} {
+	return file.NewFileServiceGetOtherFilesArgs()
+}
+
+func newFileServiceGetOtherFilesResult() interface{} {
+	return file.NewFileServiceGetOtherFilesResult()
+}
+
+func getFilesByNameHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*file.FileServiceGetFilesByNameArgs)
+	realResult := result.(*file.FileServiceGetFilesByNameResult)
+	success, err := handler.(file.FileService).GetFilesByName(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newFileServiceGetFilesByNameArgs() interface{} {
+	return file.NewFileServiceGetFilesByNameArgs()
+}
+
+func newFileServiceGetFilesByNameResult() interface{} {
+	return file.NewFileServiceGetFilesByNameResult()
+}
+
+func createShareHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*file.FileServiceCreateShareArgs)
+	realResult := result.(*file.FileServiceCreateShareResult)
+	success, err := handler.(file.FileService).CreateShare(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newFileServiceCreateShareArgs() interface{} {
+	return file.NewFileServiceCreateShareArgs()
+}
+
+func newFileServiceCreateShareResult() interface{} {
+	return file.NewFileServiceCreateShareResult()
+}
+
+func getFileByCodeHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*file.FileServiceGetFileByCodeArgs)
+	realResult := result.(*file.FileServiceGetFileByCodeResult)
+	success, err := handler.(file.FileService).GetFileByCode(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newFileServiceGetFileByCodeArgs() interface{} {
+	return file.NewFileServiceGetFileByCodeArgs()
+}
+
+func newFileServiceGetFileByCodeResult() interface{} {
+	return file.NewFileServiceGetFileByCodeResult()
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -185,6 +356,96 @@ func (p *kClient) GetFilesInfo(ctx context.Context, req *file.GetFilesInfoReques
 	_args.Req = req
 	var _result file.FileServiceGetFilesInfoResult
 	if err = p.c.Call(ctx, "GetFilesInfo", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetAllFiles(ctx context.Context, req *file.GetALLFilesRequest) (r *file.GetAllFilesResponse, err error) {
+	var _args file.FileServiceGetAllFilesArgs
+	_args.Req = req
+	var _result file.FileServiceGetAllFilesResult
+	if err = p.c.Call(ctx, "GetAllFiles", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetVideoFiles(ctx context.Context, req *file.GetVideoFilesRequest) (r *file.GetVideoFilesResponse, err error) {
+	var _args file.FileServiceGetVideoFilesArgs
+	_args.Req = req
+	var _result file.FileServiceGetVideoFilesResult
+	if err = p.c.Call(ctx, "GetVideoFiles", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetMusicFiles(ctx context.Context, req *file.GetMusicFilesRequest) (r *file.GetMusicFilesResponse, err error) {
+	var _args file.FileServiceGetMusicFilesArgs
+	_args.Req = req
+	var _result file.FileServiceGetMusicFilesResult
+	if err = p.c.Call(ctx, "GetMusicFiles", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetPictureFiles(ctx context.Context, req *file.GetPictureFilesRequest) (r *file.GetPictureFilesResponse, err error) {
+	var _args file.FileServiceGetPictureFilesArgs
+	_args.Req = req
+	var _result file.FileServiceGetPictureFilesResult
+	if err = p.c.Call(ctx, "GetPictureFiles", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetDocumentFiles(ctx context.Context, req *file.GetDocumentFilesRequest) (r *file.GetDocumentFilesResponse, err error) {
+	var _args file.FileServiceGetDocumentFilesArgs
+	_args.Req = req
+	var _result file.FileServiceGetDocumentFilesResult
+	if err = p.c.Call(ctx, "GetDocumentFiles", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetOtherFiles(ctx context.Context, req *file.GetOtherFilesRequest) (r *file.GetOtherFilesResponse, err error) {
+	var _args file.FileServiceGetOtherFilesArgs
+	_args.Req = req
+	var _result file.FileServiceGetOtherFilesResult
+	if err = p.c.Call(ctx, "GetOtherFiles", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetFilesByName(ctx context.Context, req *file.GetFilesByNameRequest) (r *file.GetFilesByNameResponse, err error) {
+	var _args file.FileServiceGetFilesByNameArgs
+	_args.Req = req
+	var _result file.FileServiceGetFilesByNameResult
+	if err = p.c.Call(ctx, "GetFilesByName", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) CreateShare(ctx context.Context, req *file.CreateShareRequest) (r *file.CreateShareResponse, err error) {
+	var _args file.FileServiceCreateShareArgs
+	_args.Req = req
+	var _result file.FileServiceCreateShareResult
+	if err = p.c.Call(ctx, "CreateShare", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetFileByCode(ctx context.Context, req *file.GetFileByCodeRequest) (r *file.GetFileByCodeResponse, err error) {
+	var _args file.FileServiceGetFileByCodeArgs
+	_args.Req = req
+	var _result file.FileServiceGetFileByCodeResult
+	if err = p.c.Call(ctx, "GetFileByCode", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

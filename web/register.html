@@ -4,112 +4,286 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vnollx 网盘注册</title>
-
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1021.0.min.js"></script>
     <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --glass: rgba(255, 255, 255, 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
 
         body {
             min-height: 100vh;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: linear-gradient(145deg, #f8fbff 0%, #e6f1ff 100%);
             display: grid;
             grid-template-columns: 1fr 1fr;
+            color: black;
+            position: relative;
+            overflow: hidden;
         }
 
-        /* 欢迎信息区域 */
+        /* 背景粒子效果 */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            from {
+                transform: translateY(100vh) rotate(0deg);
+            }
+            to {
+                transform: translateY(-100vh) rotate(360deg);
+            }
+        }
+
+        /* 欢迎区域 */
         .welcome-section {
-            background: linear-gradient(150deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.05) 100%);
-            padding: 80px;
+            padding: 2rem;
+            backdrop-filter: blur(16px);
+            background: var(--glass);
+            border-right: 1px solid rgba(99, 102, 241, 0.3);
             display: flex;
             flex-direction: column;
             justify-content: center;
-            height: 100vh;
-            border-right: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .welcome-content {
-            max-width: 500px;
+            position: relative;
+            z-index: 1;
         }
 
         .logo {
-            font-size: 2.5em;
-            color: #667eea;
-            margin-bottom: 30px;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 1rem;
+            animation: logoFloat 3s ease-in-out infinite;
         }
 
-        .logo::before {
-            content: "📦";
-            font-size: 1.2em;
+        .logo i {
+            color: var(--primary);
+            filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.4));
         }
 
-        h2 {
-            color: #2d3748;
-            font-size: 2.2em;
-            margin-bottom: 20px;
-            line-height: 1.3;
-        }
-
-        .features {
-            list-style: none;
-            margin: 30px 0;
+        @keyframes logoFloat {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
         }
 
         .features li {
+            padding: 1.2rem;
+            margin: 1rem 0;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            opacity: 0;
+            transform: translateX(-2rem);
+            animation: slideIn 0.6s ease-out forwards;
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-            color: #4a5568;
-            font-size: 1.05em;
         }
 
-        .features li::before {
-            content: "✓";
-            color: #667eea;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-
-        /* 注册区域 */
-        #registerdiv {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            height: 100vh;
-        }
-
-        #form {
-            background: white;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            width: 100%;
-            max-width: 500px;
-            transition: transform 0.3s ease;
-        }
-
-        #title {
-            color: #2d3748;
+        .features li i {
+            margin-right: 12px;
+            color: var(--primary);
+            width: 24px;
             text-align: center;
-            margin-bottom: 30px;
-            font-size: 1.8em;
+        }
+
+        .features li:nth-child(1) {
+            animation-delay: 0.2s;
+        }
+
+        .features li:nth-child(2) {
+            animation-delay: 0.4s;
+        }
+
+        .features li:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* 注册表单 */
+        #registerdiv {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            place-items: center;
+            padding: 2rem;
+        }
+
+        #register-form {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(16px);
+            padding: 2rem 2.5rem;
+            border-radius: 2rem;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            width: min(100%, 380px);
+            max-height: 95vh;
+            opacity: 0;
+            animation: formAppear 1s ease-out forwards;
+        }
+
+        .input-group {
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        #register-form p {
+            margin: 1.5rem 0 0;
+            padding: 0.8rem;
+            position: sticky;
+            bottom: -10px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 0.8rem;
+            backdrop-filter: blur(4px);
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            #register-form {
+                padding: 1.5rem;
+                max-height: 90vh;
+            }
+
+            .input-group {
+                margin: 1rem 0;
+            }
+
+            #register-form p {
+                padding: 0.5rem;
+                bottom: -5px;
+            }
+        }
+
+        @keyframes formAppear {
+            from {
+                opacity: 0;
+                transform: translateY(2rem);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .input-group {
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            border-radius: 0.8rem;
+            color: black;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        label {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(99, 102, 241, 0.6);
+            pointer-events: none;
+            transition: all 0.3s ease;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0;
+        }
+
+        .input-group:hover label,
+        input:focus+label,
+        input:not(:placeholder-shown)+label {
+            opacity: 1;
+            top: -0.8rem;
+            font-size: 0.9em;
+        }
+
+        input::placeholder {
+            color: rgba(99, 102, 241, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .input-group:hover input::placeholder {
+            color: rgba(99, 102, 241, 0.6);
+        }
+
+        .button {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 0.8rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            top: 0;
+            left: -100%;
+            transform: skewX(-30deg);
+            transition: left 0.6s ease;
+        }
+
+        .button:hover::after {
+            left: 120%;
         }
 
         /* 头像上传样式 */
         #avatarContainer {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 2rem;
         }
 
         #avatarPreview {
@@ -117,105 +291,36 @@
             height: 100px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #e2e8f0;
+            border: 3px solid rgba(99, 102, 241, 0.3);
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         #avatarPreview:hover {
             transform: scale(1.05);
-            border-color: #667eea;
+            border-color: var(--primary);
         }
 
         #avatarLabel {
-            display: inline-block;
-            margin-top: 10px;
-            color: #667eea;
+            display: block;
+            margin-top: 0.5rem;
+            color: var(--primary);
             cursor: pointer;
             font-weight: 600;
             transition: color 0.3s ease;
         }
 
         #avatarLabel:hover {
-            color: #5666b3;
+            color: var(--secondary);
         }
 
-        #avatarInput {
-            display: none;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        input {
-            width: 100%;
-            padding: 14px 20px;
-            border: 2px solid #edf2f7;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: #f8fafc;
-        }
-
-        input:focus {
-            background: white;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
-        }
-
-        #subdiv {
-            margin-top: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .button-row {
-            display: flex;
-            gap: 15px;
-            width: 100%;
-            justify-content: center;
-        }
-
-        .button {
-            background: #667eea;
-            color: white;
-            padding: 14px 30px;
-            border-radius: 8px;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .button:hover {
-            background: #5666b3;
-            transform: translateY(-1px);
-        }
-
-        .reset-btn {
-            background: #718096;
-        }
-
-        .reset-btn:hover {
-            background: #4a5568;
-        }
-
-        p {
-            color: #718096;
-            margin-top: 15px;
-        }
-
-        a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        a:hover {
-            text-decoration: underline;
+        /* 底部链接 */
+        #register-form p {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 0.8rem;
+            backdrop-filter: blur(4px);
         }
 
         /* 响应式设计 */
@@ -228,78 +333,73 @@
                 display: none;
             }
 
-            #registerdiv {
-                padding: 20px;
-                height: auto;
-                min-height: 100vh;
-            }
-
-            .button-row {
-                flex-direction: column;
-            }
-
-            .button {
-                width: 100%;
+            #register-form {
+                padding: 2rem;
+                border-radius: 1.5rem;
             }
         }
     </style>
 </head>
+
 <body>
-<!-- 欢迎信息区域 -->
+<div class="particles"></div>
+
+<!-- 欢迎区域 -->
 <section class="welcome-section">
     <div class="welcome-content">
-        <div class="logo">Vnollx Drive</div>
-        <h2>开启您的智能存储之旅</h2>
+        <div class="logo">
+            <i class="fas fa-cloud-upload-alt"></i>
+            Vnollx Drive
+        </div>
         <ul class="features">
-            <li>免费获得15GB初始存储空间</li>
-            <li>支持多端同步和文件分享</li>
-            <li>智能分类和快速搜索功能</li>
-            <li>银行级数据加密保护</li>
+            <li><i class="fas fa-database"></i> 免费获得15GB初始存储空间</li>
+            <li><i class="fas fa-sync-alt"></i> 支持多端同步和文件分享</li>
+            <li><i class="fas fa-search-plus"></i> 智能分类和快速搜索功能</li>
+            <li><i class="fas fa-shield-alt"></i> 银行级数据加密保护</li>
         </ul>
-        <p style="color: #718096;">真诚的邀请您体验我们的服务</p>
     </div>
 </section>
 
 <!-- 注册区域 -->
 <div id="registerdiv">
-    <form action="/user/register" method="post" id="form">
-        <h1 id="title">创建新账户</h1>
+    <form action="/user/register" method="post" id="register-form">
 
         <!-- 头像上传 -->
         <div id="avatarContainer">
-            <img id="avatarPreview" src="http://127.0.0.1:9000/user/init.jpg" alt="头像预览">
+            <img id="avatarPreview" src="http://106.54.223.38:9000/user/init.jpg" alt="头像预览">
             <label id="avatarLabel" for="avatarInput">点击上传头像</label>
             <input type="file" id="avatarInput" accept="image/*" onchange="previewAvatar(event)">
         </div>
 
         <div class="input-group">
             <input type="text" id="username" placeholder="请输入用户名" required>
+            <label for="username">用户名</label>
         </div>
 
         <div class="input-group">
             <input type="text" id="phone" placeholder="请输入手机号码" required>
+            <label for="phone">手机号码</label>
         </div>
 
         <div class="input-group">
-            <input type="password" id="password" placeholder="设置登录密码" required>
+            <input type="password" id="password" placeholder="请输入密码" required>
+            <label for="password">设置密码</label>
         </div>
 
         <div class="input-group">
-            <input type="password" id="repassword" placeholder="确认登录密码" required>
+            <input type="password" id="repassword" placeholder="请再次输入密码" required>
+            <label for="repassword">确认密码</label>
         </div>
 
-        <div id="subdiv">
-            <div class="button-row">
-                <button type="submit" class="button">立即注册</button>
-                <button type="reset" class="button reset-btn">重置</button>
-            </div>
-            <p>已有账号? <a href="login">立即登录</a></p>
-        </div>
+        <button type="submit" class="button">立即注册</button>
+        <p style="text-align: center; margin-top: 1.5rem;">
+            已有账号？<a href="login" style="color: var(--primary);">立即登录</a>
+        </p>
     </form>
 </div>
 
 <script>
-    // 使用 SweetAlert2 替代原生alert
+    // 表单验证
     function check(){
         const username = document.getElementById("username").value;
         const phone = document.getElementById("phone").value;
@@ -307,26 +407,40 @@
         const repassword = document.getElementById("repassword").value;
 
         if(!username) {
-            Swal.fire('提示', '用户名不能为空!', 'warning');
+            Swal.fire({
+                icon: 'warning',
+                title: '用户名不能为空',
+                confirmButtonColor: '#667eea'
+            });
             return false;
         }
         if(!phone) {
-            Swal.fire('提示', '电话号码不能为空!', 'warning');
+            Swal.fire({
+                icon: 'warning',
+                title: '手机号不能为空',
+                confirmButtonColor: '#667eea'
+            });
             return false;
         }
         if(!password) {
-            Swal.fire('提示', '密码不能为空!', 'warning');
+            Swal.fire({
+                icon: 'warning',
+                title: '密码不能为空',
+                confirmButtonColor: '#667eea'
+            });
             return false;
         }
         if(password !== repassword) {
-            Swal.fire('错误', '两次输入的密码不一致!', 'error');
+            Swal.fire({
+                icon: 'error',
+                title: '密码不一致',
+                text: '请确保两次输入的密码相同',
+                confirmButtonColor: '#667eea'
+            });
             return false;
         }
-        // 定义正则表达式，验证电话号码（这里以中国手机号为例）
         const phoneRegex = /^1[3-9]\d{9}$/;
-        if (phoneRegex.test(phone)) {
-            return true
-        } else {
+        if (!phoneRegex.test(phone)) {
             Swal.fire({
                 icon: 'error',
                 title: '格式错误',
@@ -335,6 +449,7 @@
             });
             return false;
         }
+        return true;
     }
 
     // 头像预览功能
@@ -345,14 +460,18 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             const preview = document.getElementById("avatarPreview");
-            preview.src = e.target.result;
-            preview.style.borderColor = '#667eea';
+            preview.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                preview.src = e.target.result;
+                preview.style.transform = 'scale(1)';
+                preview.style.borderColor = '#667eea';
+            }, 200);
         };
         reader.readAsDataURL(file);
     }
 
     // 表单提交处理
-    document.getElementById("form").addEventListener('submit', async function(e) {
+    document.getElementById("register-form").addEventListener('submit', async function(e) {
         e.preventDefault();
         if (!check()) return;
 
@@ -360,74 +479,84 @@
         const phone = document.getElementById("phone").value;
         const password = document.getElementById("password").value;
         const avatarFile = document.getElementById('avatarInput').files[0];
-
+        const [n, postfix] = avatarFile?.name.split('.') || ['init', 'jpg'];
         try {
-            let avatarUrl = 'http://127.0.0.1:9000/user/init.jpg'; // 默认头像
-
-            // 如果有上传头像
-            if (avatarFile) {
-                // 配置 AWS SDK（使用浏览器全局变量）
-                AWS.config.update({
-                    accessKeyId: 'vnollxvnollx',
-                    secretAccessKey: 'vnollxvnollxvnollx',
-                    region: 'us-east-1',
-                    endpoint: 'http://localhost:9000',
-                    s3ForcePathStyle: true,
-                    signatureVersion: 'v4'
-                });
-
-                const s3 = new AWS.S3();
-
-                // 生成唯一文件名
-                const fileName = phone+".jpg";
-
-                // 使用 Promise 方式上传
-                const uploadResult = await new Promise((resolve, reject) => {
-                    s3.upload({
-                        Bucket: 'phone',
-                        Key: fileName,
-                        Body: avatarFile,
-                        ContentType: avatarFile.type
-                    }, (err, data) => {
-                        if (err) reject(err);
-                        else resolve(data);
-                    });
-                });
-
-                var avatar = uploadResult.Location;
-            }
+            // 显示加载动画
+            const swalInstance = Swal.fire({
+                title: '正在注册...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
             // 提交注册信息
             const response = await fetch("/user/register", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name,
-                    phone,
-                    password,
-                    avatar  // 添加头像地址
-                })
+                body: JSON.stringify({ name, phone, password, postfix })
             });
 
             const data = await response.json();
+            await swalInstance.close();
+
             if (data.base.code === 200) {
                 await Swal.fire({
                     icon: 'success',
                     title: '注册成功!',
-                    text: '正在跳转到登录页面...',
+                    html: `<p style="color:#718096;margin-top:10px;">正在跳转至登录页面...</p>`,
+                    showConfirmButton: false,
                     timer: 1500,
-                    showConfirmButton: false
+                    willOpen: () => {
+                        const successIcon = Swal.getHtmlContainer().querySelector('.swal2-success');
+                        if (successIcon) {
+                            successIcon.style.animation = 'checkmark 0.6s ease-out forwards';
+                        }
+                    },
+                    background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)'
                 });
+
+                // 上传头像
+                if (avatarFile) {
+                    AWS.config.update({
+                        accessKeyId: 'vnollxvnollx',
+                        secretAccessKey: 'vnollxvnollxvnollx',
+                        region: 'us-east-1',
+                        endpoint: 'http://106.54.223.38:9000',
+                        s3ForcePathStyle: true,
+                        signatureVersion: 'v4'
+                    });
+
+                    const s3 = new AWS.S3();
+                    const fileName = `${data.user_id}.`+postfix;
+
+                    await new Promise((resolve, reject) => {
+                        s3.upload({
+                            Bucket: 'user',
+                            Key: fileName,
+                            Body: avatarFile,
+                            ContentType: avatarFile.type
+                        }, (err, data) => err ? reject(err) : resolve(data));
+                    });
+                }
+
                 window.location.href = "login";
             } else {
-                Swal.fire('注册失败', data.base.msg || '未知错误', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: '注册失败',
+                    text: data.base.msg || '未知错误',
+                    confirmButtonColor: '#667eea'
+                });
             }
+
         } catch (error) {
             console.error("发生错误:", error);
             Swal.fire({
                 icon: 'error',
                 title: '操作失败',
-                text: error.message || '请检查控制台获取详细信息'
+                text: error.message || '请检查控制台获取详细信息',
+                confirmButtonColor: '#667eea'
             });
         }
     });

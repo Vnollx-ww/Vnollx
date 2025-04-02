@@ -16,4 +16,5 @@ etcd:
 kafka:
   host: 127.0.0.1
   #host: my-kafka
+  #port: 9094
   port: 9092

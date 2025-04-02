@@ -49,3 +49,36 @@ func GetUserInfo(ctx context.Context, req *user.GetUserInfoRequest) (*user.GetUs
 func UpdateUserInfo(ctx context.Context, req *user.UpdateUserInfoRequest) (*user.UpdateUserInfoResponse, error) {
 	return userClient.UpdateUserInfo(ctx, req)
 }
+func UpdatePassword(ctx context.Context, req *user.UpdatePasswordRequest) (*user.UpdatePasswordResponse, error) {
+	return userClient.UpdatePassword(ctx, req)
+}
+func LoginByCode(ctx context.Context, req *user.UserLoginByCodeRequest) (*user.UserLoginByCodeResponse, error) {
+	return userClient.UserLoginByCode(ctx, req)
+}
+func GenerateCaptcha(ctx context.Context, req *user.GenerateCaptchaRequest) (*user.GenerateCaptchaResponse, error) {
+	return userClient.GenerateCaptcha(ctx, req)
+}
+func AddFriend(ctx context.Context, req *user.AddFriendRequest) (*user.AddFriendResponse, error) {
+	return userClient.AddFriend(ctx, req)
+}
+func DeleteFriend(ctx context.Context, req *user.DeleteFriendRequest) (*user.DeleteFriendResponse, error) {
+	return userClient.DeleteFriend(ctx, req)
+}
+func SendMessage(ctx context.Context, req *user.SendMessageRequest) (*user.SendMessageResponse, error) {
+	return userClient.SendMessage(ctx, req)
+}
+func GetFriendList(ctx context.Context, req *user.GetFriendListRequest) (*user.GetFriendListResponse, error) {
+	return userClient.GetFriendList(ctx, req)
+}
+func GetMessageList(ctx context.Context, req *user.GetMessageListRequest) (*user.GetMessageListResponse, error) {
+	return userClient.GetMessageList(ctx, req)
+}
+func DeleteMessage(ctx context.Context, req *user.DeleteMessageRequest) (*user.DeleteMessageResponse, error) {
+	return userClient.DeleteMessage(ctx, req)
+}
+func GetUsersByName(ctx context.Context, req *user.GetUsersByNameRequest) (*user.GetUsersByNameResponse, error) {
+	return userClient.GetUsersByName(ctx, req)
+}
+func IsFriend(ctx context.Context, req *user.IsFriendRequest) (*user.IsFriendResponse, error) {
+	return userClient.IsFriend(ctx, req)
+}

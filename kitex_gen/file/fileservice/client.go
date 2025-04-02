@@ -16,6 +16,15 @@ type Client interface {
 	UpdateFileInfo(ctx context.Context, req *file.UpdateFileInfoRequest, callOptions ...callopt.Option) (r *file.UpdateFileInfoResponse, err error)
 	GetFileInfo(ctx context.Context, req *file.GetFileInfoRequest, callOptions ...callopt.Option) (r *file.GetFileInfoResponse, err error)
 	GetFilesInfo(ctx context.Context, req *file.GetFilesInfoRequest, callOptions ...callopt.Option) (r *file.GetFilesInfoResponse, err error)
+	GetAllFiles(ctx context.Context, req *file.GetALLFilesRequest, callOptions ...callopt.Option) (r *file.GetAllFilesResponse, err error)
+	GetVideoFiles(ctx context.Context, req *file.GetVideoFilesRequest, callOptions ...callopt.Option) (r *file.GetVideoFilesResponse, err error)
+	GetMusicFiles(ctx context.Context, req *file.GetMusicFilesRequest, callOptions ...callopt.Option) (r *file.GetMusicFilesResponse, err error)
+	GetPictureFiles(ctx context.Context, req *file.GetPictureFilesRequest, callOptions ...callopt.Option) (r *file.GetPictureFilesResponse, err error)
+	GetDocumentFiles(ctx context.Context, req *file.GetDocumentFilesRequest, callOptions ...callopt.Option) (r *file.GetDocumentFilesResponse, err error)
+	GetOtherFiles(ctx context.Context, req *file.GetOtherFilesRequest, callOptions ...callopt.Option) (r *file.GetOtherFilesResponse, err error)
+	GetFilesByName(ctx context.Context, req *file.GetFilesByNameRequest, callOptions ...callopt.Option) (r *file.GetFilesByNameResponse, err error)
+	CreateShare(ctx context.Context, req *file.CreateShareRequest, callOptions ...callopt.Option) (r *file.CreateShareResponse, err error)
+	GetFileByCode(ctx context.Context, req *file.GetFileByCodeRequest, callOptions ...callopt.Option) (r *file.GetFileByCodeResponse, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -70,4 +79,49 @@ func (p *kFileServiceClient) GetFileInfo(ctx context.Context, req *file.GetFileI
 func (p *kFileServiceClient) GetFilesInfo(ctx context.Context, req *file.GetFilesInfoRequest, callOptions ...callopt.Option) (r *file.GetFilesInfoResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.GetFilesInfo(ctx, req)
+}
+
+func (p *kFileServiceClient) GetAllFiles(ctx context.Context, req *file.GetALLFilesRequest, callOptions ...callopt.Option) (r *file.GetAllFilesResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetAllFiles(ctx, req)
+}
+
+func (p *kFileServiceClient) GetVideoFiles(ctx context.Context, req *file.GetVideoFilesRequest, callOptions ...callopt.Option) (r *file.GetVideoFilesResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetVideoFiles(ctx, req)
+}
+
+func (p *kFileServiceClient) GetMusicFiles(ctx context.Context, req *file.GetMusicFilesRequest, callOptions ...callopt.Option) (r *file.GetMusicFilesResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetMusicFiles(ctx, req)
+}
+
+func (p *kFileServiceClient) GetPictureFiles(ctx context.Context, req *file.GetPictureFilesRequest, callOptions ...callopt.Option) (r *file.GetPictureFilesResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetPictureFiles(ctx, req)
+}
+
+func (p *kFileServiceClient) GetDocumentFiles(ctx context.Context, req *file.GetDocumentFilesRequest, callOptions ...callopt.Option) (r *file.GetDocumentFilesResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetDocumentFiles(ctx, req)
+}
+
+func (p *kFileServiceClient) GetOtherFiles(ctx context.Context, req *file.GetOtherFilesRequest, callOptions ...callopt.Option) (r *file.GetOtherFilesResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetOtherFiles(ctx, req)
+}
+
+func (p *kFileServiceClient) GetFilesByName(ctx context.Context, req *file.GetFilesByNameRequest, callOptions ...callopt.Option) (r *file.GetFilesByNameResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetFilesByName(ctx, req)
+}
+
+func (p *kFileServiceClient) CreateShare(ctx context.Context, req *file.CreateShareRequest, callOptions ...callopt.Option) (r *file.CreateShareResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.CreateShare(ctx, req)
+}
+
+func (p *kFileServiceClient) GetFileByCode(ctx context.Context, req *file.GetFileByCodeRequest, callOptions ...callopt.Option) (r *file.GetFileByCodeResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetFileByCode(ctx, req)
 }

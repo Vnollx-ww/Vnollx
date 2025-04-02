@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>文件分享码解析器</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.28/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.28/dist/sweetalert2.min.js"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1192.0.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .input-group {
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        input[type="text"] {
+            padding: 0.8rem 1.2rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            flex: 1;
+            background: rgba(255,255,255,0.9);
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            outline: none;
+        }
+
+        button {
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(0);
+            border: none;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background: var(--primary-hover);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .file-info {
+            background: var(--surface);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.3);
+            margin-top: 1.5rem;
+        }
+
+        .file-info h3 {
+            color: var(--text);
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .actions {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* 模态框样式 */
+        .modal-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-content {
+            background: rgba(255,255,255,0.95);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            width: 600px;
+            max-width: 90%;
+            position: relative;
+            animation: modalShow 0.3s ease;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            max-height: 80vh;
+        }
+
+        @keyframes modalShow {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: var(--text);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* 文件表格 */
+        .file-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            --hover-bg: #f8fafc;
+            --border-color: #f1f5f9;
+        }
+
+        .file-table th {
+            background: rgba(241, 245, 249, 0.8);
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 1rem;
+            border-bottom: 2px solid var(--border-color);
+            backdrop-filter: blur(4px);
+            position: sticky;
+            top: 0;
+        }
+
+        .file-table td {
+            padding: 1rem;
+            color: var(--text);
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .file-table tr:hover td {
+            background: var(--hover-bg);
+            transform: scale(1.02);
+        }
+
+        /* 文件列表容器 */
+        .file-list-container {
+            flex: 1;
+            min-height: 200px;
+            max-height: calc(80vh - 180px);
+            overflow-y: auto;
+            margin: 1rem 0;
+            border-radius: 0.75rem;
+        }
+
+        /* 路径导航 */
+        .path-navigation {
+            padding: 0.75rem;
+            background: rgba(241, 245, 249, 0.5);
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .path-navigation a {
+            color: var(--primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .path-navigation a:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .path-navigation span {
+            color: var(--text-secondary);
+            margin: 0 0.25rem;
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <h1 style="color: var(--text); margin-bottom: 1.5rem;">🔗 文件分享码解析器</h1>
+
+    <div class="input-group">
+        <input type="text" id="shareCode" placeholder="请输入分享码">
+        <button onclick="parseShareCode()">🚀 解析文件</button>
+    </div>
+
+    <div id="fileInfo" class="file-info" style="display: none;">
+        <h3 id="fileName"></h3>
+        <p style="color: var(--text-secondary);">📄 文件类型: <span id="fileType"></span></p>
+        <p style="color: var(--text-secondary);">📏 文件大小: <span id="fileSize"></span></p>
+        <div class="actions">
+            <button onclick="downloadFileWrapper()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">⬇️ 下载文件</button>
+            <button onclick="saveToCloud()" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">☁️ 保存到云盘</button>
+        </div>
+    </div>
+</div>
+
+<!-- 保存到云盘模态框 -->
+<div class="modal-mask" id="saveModal">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeSaveModal()">&times;</span>
+        <h2 class="modal-title">📂 选择保存位置</h2>
+
+        <div id="savePathNav" class="path-navigation"></div>
+
+        <div class="file-list-container">
+            <table class="file-table">
+                <thead>
+                <tr>
+                    <th>名称</th>
+                    <th>类型</th>
+                </tr>
+                </thead>
+                <tbody id="saveFileList"></tbody>
+            </table>
+        </div>
+
+        <div class="modal-actions">
+            <button class="cancel-btn" onclick="closeSaveModal()" style="background: #f1f5f9; color: #64748b;">取消</button>
+            <button class="confirm-btn" onclick="confirmSave()" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white;">💾 保存到此处</button>
+        </div>
+    </div>
+</div>
+<script>
+    let saveCurrentPath = [{ name: '根目录', id: 0 }];
+
+    function parseShareCode() {
+        const shareCode = document.getElementById('shareCode').value.trim();
+        const token = localStorage.getItem('token');
+
+        if (!shareCode) {
+            Swal.fire('错误', '请输入有效的分享码', 'error');
+            return;
+        }
+
+        const formdata = new FormData();
+        formdata.append("Token", token);
+        formdata.append("Code", shareCode);
+
+        Swal.fire({
+            title: '解析中...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        fetch('/file/getfilebycode', {
+            method: 'POST',
+            body: formdata,
+        })
+            .then(response => response.json())
+            .then(data => {
+                Swal.close();
+                if (data.base.code !== 200) {
+                    Swal.fire('错误', data.base.msg, 'error');
+                    return;
+                }
+                displayFileInfo(data.file);
+            })
+            .catch(error => {
+                Swal.close();
+                console.error('Error:', error);
+                Swal.fire('错误', '网络请求失败', 'error');
+            });
+    }
+
+    function displayFileInfo(fileInfo) {
+        const infoDiv = document.getElementById('fileInfo');
+        infoDiv.style.display = 'block';
+
+        document.getElementById('fileName').textContent = fileInfo.name;
+        document.getElementById('fileType').textContent = fileInfo.postfix;
+        document.getElementById('fileSize').textContent = formatFileSize(fileInfo.size);
+
+        window.sharedFile = fileInfo;
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    async function downloadFile(fileId, postfix) {
+        AWS.config.update({
+            accessKeyId: 'vnollxvnollx',
+            secretAccessKey: 'vnollxvnollxvnollx',
+            region: 'us-east-1',
+            endpoint: 'http://106.54.223.38:9000',
+            s3ForcePathStyle: true,
+            signatureVersion: 'v4'
+        });
+
+        const s3 = new AWS.S3();
+        const params = {
+            Bucket: 'file',
+            Key: `FileId=${fileId}.${postfix}`
+        };
+
+        try {
+            const data = await s3.getObject(params).promise();
+            const blob = new Blob([data.Body]);
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${window.sharedFile.name}.${postfix}`;
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('下载失败:', error);
+            Swal.fire('错误', '文件下载失败', 'error');
+        }
+    }
+
+    function downloadFileWrapper() {
+        if (window.sharedFile) {
+            const fileId = window.sharedFile.file_id;
+            const postfix = window.sharedFile.postfix;
+            downloadFile(fileId, postfix);
+        } else {
+            Swal.fire('错误', '请先解析文件信息', 'error');
+        }
+    }
+
+    async function saveToCloud() {
+        if (!window.sharedFile) {
+            Swal.fire('错误', '请先解析文件信息', 'error');
+            return;
+        }
+
+        await loadSaveFiles(saveCurrentPath[saveCurrentPath.length - 1].id);
+        updateSavePathNavigation();
+        document.getElementById('saveModal').style.display = 'flex';
+    }
+
+    async function loadSaveFiles(parentId) {
+        const token = localStorage.getItem('token');
+        const fileList = document.getElementById('saveFileList');
+
+        try {
+            const formData = new FormData();
+            formData.append('ParentFolderId', parentId);
+            formData.append('Token', token);
+
+            Swal.fire({
+                title: '加载中...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            const [fileResp, folderResp] = await Promise.all([
+                fetch('/file/enquerys', { method: 'POST', body: formData }),
+                fetch('/folder/enquerys', { method: 'POST', body: formData })
+            ]);
+
+            Swal.close();
+
+            const fileData = await fileResp.json();
+            const folderData = await folderResp.json();
+
+            const allItems = [
+                ...(fileData.base?.code === 200 ? fileData.files.map(f => ({ ...f, type: 'file' })) : []),
+                ...(folderData.base?.code === 200 ? folderData.folders.map(f => ({ ...f, type: 'folder' })) : [])
+            ].sort((a, b) => {
+                const timeA = new Date(a.upload_time).getTime();
+                const timeB = new Date(b.upload_time).getTime();
+                return timeB - timeA;
+            });
+
+            renderSaveFileList(allItems, fileList);
+        } catch (error) {
+            Swal.close();
+            console.error('请求失败:', error);
+            Swal.fire('错误', '获取文件列表失败，请检查网络连接', 'error');
+        }
+    }
+
+    function renderSaveFileList(items, fileList) {
+        if (!fileList) return;
+        fileList.innerHTML = '';
+
+        items.forEach(item => {
+            const row = document.createElement('tr');
+            if (item.type === 'file') {
+                row.innerHTML = `
+                    <td>${getFileIcon(item.postfix)} ${item.name}</td>
+                    <td>文件</td>
+                `;
+            } else {
+                row.className = 'folder-item';
+                row.innerHTML = `
+                    <td>📁 ${item.name}</td>
+                    <td>文件夹</td>
+                `;
+                row.addEventListener('click', () => {
+                    saveCurrentPath.push({ name: item.name, id: item.folder_id });
+                    loadSaveFiles(item.folder_id);
+                    updateSavePathNavigation();
+                });
+            }
+            fileList.appendChild(row);
+        });
+    }
+
+    function updateSavePathNavigation() {
+        const pathNav = document.getElementById('savePathNav');
+        pathNav.innerHTML = '';
+
+        saveCurrentPath.forEach((path, index) => {
+            const isLast = index === saveCurrentPath.length - 1;
+            const element = document.createElement(isLast ? 'span' : 'a');
+
+            element.textContent = path.name;
+            element.className = isLast ? 'current' : '';
+            element.style.cursor = isLast ? 'default' : 'pointer';
+
+            if (!isLast) {
+                element.onclick = () => {
+                    saveCurrentPath = saveCurrentPath.slice(0, index + 1);
+                    loadSaveFiles(path.id);
+                };
+            }
+
+            pathNav.appendChild(element);
+
+            if (index < saveCurrentPath.length - 1) {
+                const separator = document.createElement('span');
+                separator.textContent = ' › ';
+                separator.style.margin = '0 5px';
+                pathNav.appendChild(separator);
+            }
+        });
+    }
+
+    async function confirmSave() {
+        if (!window.sharedFile) {
+            Swal.fire('错误', '请先解析文件信息', 'error');
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        const parentFolderId = saveCurrentPath[saveCurrentPath.length - 1].id;
+
+        Swal.fire({
+            title: '保存中...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const formData = new FormData();
+            formData.append('Token', token);
+            formData.append('ParentFolderId', parentFolderId);
+            formData.append('Name', window.sharedFile.name);  // 从sharedFile获取文件名
+            formData.append('Postfix', window.sharedFile.postfix);  // 从sharedFile获取后缀
+            formData.append('Size', window.sharedFile.size);  // 从sharedFile获取文件大小
+
+            const response = await fetch('/file/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            Swal.close();
+
+            if (data.base.code === 200) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '保存成功',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                // 上传文件到MinIO时需要获取文件内容，当前代码缺少文件二进制数据
+                // 需要先通过downloadFile函数的方式获取文件数据，再进行上传
+                // 示例修改：
+                const fileContent = await downloadFileToBlob(window.sharedFile.file_id, window.sharedFile.postfix);
+                await uploadToMinIO(fileContent, window.sharedFile.postfix, data.file_id);
+                closeSaveModal();
+            } else {
+                Swal.fire('错误', data.base.msg, 'error');
+            }
+        } catch (error) {
+            Swal.close();
+            console.error('保存失败:', error);
+            Swal.fire('错误', '保存文件时发生网络错误', 'error');
+        }
+    }
+    async function downloadFileToBlob(fileId, postfix) {
+        AWS.config.update({
+            accessKeyId: 'vnollxvnollx',
+            secretAccessKey: 'vnollxvnollxvnollx',
+            region: 'us-east-1',
+            endpoint: 'http://localhost:9000',
+            s3ForcePathStyle: true,
+            signatureVersion: 'v4'
+        });
+
+        const s3 = new AWS.S3();
+        const params = {
+            Bucket: 'file',
+            Key: `FileId=${fileId}.${postfix}`
+        };
+
+        try {
+            const data = await s3.getObject(params).promise();
+            return new Blob([data.Body]);
+        } catch (error) {
+            console.error('获取文件内容失败:', error);
+            throw error;
+        }
+    }
+    async function uploadToMinIO(file,postfix,fileid) {
+        AWS.config.update({
+            accessKeyId: 'vnollxvnollx',
+            secretAccessKey: 'vnollxvnollxvnollx',
+            region: 'us-east-1',
+            endpoint: 'http://localhost:9000',
+            s3ForcePathStyle: true,
+            signatureVersion: 'v4'
+        });
+        const s3 = new AWS.S3();
+        // 生成唯一文件名
+        const fileName = "FileId="+fileid+"."+postfix;
+
+        // 使用 Promise 方式上传
+        const uploadResult = await new Promise((resolve, reject) => {
+            s3.upload({
+                Bucket: 'file',
+                Key: fileName,
+                Body: file,
+                ContentType: file.type
+            }, (err, data) => {
+                if (err) reject(err);
+                else resolve(data);
+            });
+        });
+    }
+    function closeSaveModal() {
+        document.getElementById('saveModal').style.display = 'none';
+        saveCurrentPath = [{ name: '根目录', id: 0 }];
+    }
+
+    function getFileIcon(postfix) {
+        const icons = {
+            pdf: '📄',
+            doc: '📄',
+            docx: '📄',
+            xls: '📊',
+            xlsx: '📊',
+            jpg: '🖼️',
+            png: '🖼️',
+            mp4: '🎥',
+            mp3: '🎵',
+            zip: '📦'
+        };
+        return icons[postfix.toLowerCase()] || '📄';
+    }
+</script>
+</body>
+
+</html>

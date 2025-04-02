@@ -2,6 +2,7 @@ package main
 
 import (
 	"Vnollx/dal/db"
+	"Vnollx/dal/redis"
 	"Vnollx/kitex_gen/base"
 	folder "Vnollx/kitex_gen/folder"
 	"Vnollx/utils"
@@ -16,7 +17,7 @@ type FolderServiceImpl struct{}
 // CreateFolder implements the FolderServiceImpl interface.
 func (s *FolderServiceImpl) CreateFolder(ctx context.Context, req *folder.CreateFolderRequest) (resp *folder.CreateFolderResponse, err error) {
 	resp = new(folder.CreateFolderResponse)
-	ok, err := db.GetFolderByNameAndParentFolderId(req.Name, req.ParentFolderId)
+	ok, err := db.GetFolderByNameAndParentFolderId(req.Name, req.ParentFolderId, req.UserId)
 	if err != nil {
 		logger.Error("查询文件夹失败：", zap.Error(err))
 		resp.Base = utils.WrapWithSystemError("服务器内部错误，请联系管理员")
@@ -32,6 +33,11 @@ func (s *FolderServiceImpl) CreateFolder(ctx context.Context, req *folder.Create
 		logger.Error("创建文件夹失败：", zap.Error(err))
 		resp.Base = utils.WrapWithSystemError("服务器内部错误，请联系管理员")
 		return resp, nil
+	}
+	cacheKey := fmt.Sprintf("userinfo:%d", req.UserId)
+	err = redis.DelKey(ctx, cacheKey) // 删除缓存
+	if err != nil {
+		logger.Error("删除缓存失败：", zap.Error(err))
 	}
 	resp.Base = utils.WrapWithSuccess("创建文件夹成功")
 	return resp, nil
@@ -63,6 +69,11 @@ func (s *FolderServiceImpl) DeleteFolder(ctx context.Context, req *folder.Delete
 		resp.Base = utils.WrapWithSystemError("服务器内部错误，请联系管理员")
 		return resp, nil
 	}
+	cacheKey := fmt.Sprintf("userinfo:%d", req.UserId)
+	err = redis.DelKey(ctx, cacheKey) // 删除缓存
+	if err != nil {
+		logger.Error("删除缓存失败：", zap.Error(err))
+	}
 	resp.Base = utils.WrapWithSuccess("删除文件夹成功")
 	return resp, nil
 }
@@ -81,7 +92,7 @@ func (s *FolderServiceImpl) UpdateFolderInfo(ctx context.Context, req *folder.Up
 		resp.Base = utils.WrapWithLogicError("文件夹不存在或已被删除")
 		return resp, nil
 	}
-	ok, err := db.GetFolderByNameAndParentFolderId(req.Name, req.ParentFolderId)
+	ok, err := db.GetFolderByNameAndParentFolderId(req.Name, req.ParentFolderId, req.UserId)
 	if err != nil {
 		logger.Error("查询文件夹失败：", zap.Error(err))
 		resp.Base = utils.WrapWithSystemError("服务器内部错误，请联系管理员")
