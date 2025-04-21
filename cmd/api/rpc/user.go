@@ -30,6 +30,7 @@ func InitUser(config *viper.Config) {
 		client.WithConnectTimeout(30000*time.Millisecond), // conn timeout
 		client.WithFailureRetry(retry.NewFailurePolicy()), // retry
 		client.WithResolver(r),                            // resolver
+
 		client.WithClientBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: serviceName}),
 	)
 	if err != nil {

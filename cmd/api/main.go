@@ -2,6 +2,7 @@ package main
 
 import (
 	"Vnollx/cmd/api/handler"
+	confg "Vnollx/config"
 	"Vnollx/dal/db"
 	"Vnollx/pkg/middlerware"
 	"Vnollx/pkg/viper"
@@ -15,45 +16,48 @@ var (
 	apiServerAddr = fmt.Sprintf("%s:%d", config.Viper.GetString("server.host"), config.Viper.GetInt("server.port"))
 )
 
-func LoadHTML(r *gin.Engine) {
-	r.GET("/", func(c *gin.Context) {
-		c.HTML(200, "index.html", nil) // 渲染 Web/index.html
-	})
-	r.GET("/login", func(c *gin.Context) {
-		c.HTML(200, "login.html", nil) // 渲染 Web/index.html
-	})
-	r.GET("/register", func(c *gin.Context) {
-		c.HTML(200, "register.html", nil) // 渲染 Web/index.html
-	})
-	r.GET("/homepage", func(c *gin.Context) {
-		c.HTML(200, "homepage.html", nil) // 渲染 Web/index.html
-	})
-	r.GET("/info", func(c *gin.Context) {
-		c.HTML(200, "info.html", nil)
-	})
-	r.GET("/allfile", func(c *gin.Context) {
-		c.HTML(200, "allfile.html", nil)
-	})
-	r.GET("/help", func(c *gin.Context) {
-		c.HTML(200, "help.html", nil)
-	})
-	r.GET("/setting", func(c *gin.Context) {
-		c.HTML(200, "setting.html", nil)
-	})
-	r.GET("/category", func(c *gin.Context) {
-		c.HTML(200, "category.html", nil)
-	})
-	r.GET("/share", func(c *gin.Context) {
-		c.HTML(200, "share.html", nil)
-	})
-	r.GET("/notification", func(c *gin.Context) {
-		c.HTML(200., "notification.html", nil)
-	})
-	r.GET("/friend", func(c *gin.Context) {
-		c.HTML(200, "friend.html", nil)
-	})
-}
+/*
+	func LoadHTML(r *gin.Engine) {
+		r.GET("/", func(c *gin.Context) {
+			c.HTML(200, "index.html", nil) // 渲染 Web/index.html
+		})
+		r.GET("/login", func(c *gin.Context) {
+			c.HTML(200, "login.html", nil) // 渲染 Web/index.html
+		})
+		r.GET("/register", func(c *gin.Context) {
+			c.HTML(200, "register.html", nil) // 渲染 Web/index.html
+		})
+		r.GET("/homepage", func(c *gin.Context) {
+			c.HTML(200, "homepage.html", nil) // 渲染 Web/index.html
+		})
+		r.GET("/info", func(c *gin.Context) {
+			c.HTML(200, "info.html", nil)
+		})
+		r.GET("/allfile", func(c *gin.Context) {
+			c.HTML(200, "allfile.html", nil)
+		})
+		r.GET("/help", func(c *gin.Context) {
+			c.HTML(200, "help.html", nil)
+		})
+		r.GET("/setting", func(c *gin.Context) {
+			c.HTML(200, "setting.html", nil)
+		})
+		r.GET("/category", func(c *gin.Context) {
+			c.HTML(200, "category.html", nil)
+		})
+		r.GET("/share", func(c *gin.Context) {
+			c.HTML(200, "share.html", nil)
+		})
+		r.GET("/notification", func(c *gin.Context) {
+			c.HTML(200., "notification.html", nil)
+		})
+		r.GET("/friend", func(c *gin.Context) {
+			c.HTML(200, "friend.html", nil)
+		})
+	}
+*/
 func RegisterGroup(r *gin.Engine) *gin.Engine {
+	r.Use(middlerware.RateLimitMiddleware())
 	user := r.Group("/user")
 	{
 		user.POST("/login", handler.Login)
@@ -112,8 +116,9 @@ func RegisterGroup(r *gin.Engine) *gin.Engine {
 func main() {
 	r := gin.Default()
 	//r.LoadHTMLGlob("/app/web/*.html")
-	r.LoadHTMLGlob("D:/GolandProgram/Vnollx/web/*.html")
-	LoadHTML(r)
+	//r.LoadHTMLGlob("D:/GolandProgram/Vnollx/web/*.html")
+	//LoadHTML(r)
+	r.Use(confg.Cors())
 	RegisterGroup(r)
 	go db.CleanExpiredShares()
 	go db.SendNotificationIfSpaceNotEnough()
